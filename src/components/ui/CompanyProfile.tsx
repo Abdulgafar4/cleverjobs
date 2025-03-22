@@ -1,9 +1,11 @@
 
 import { Button } from "@/components/ui/button";
 
-// ... fix the Button usage in CompanyProfile to remove 'as' prop
+// Fix the Button usage in CompanyProfile by using an anchor element
 const applyButton = (
-  <Button variant="default" href={job.applyUrl} target="_blank" rel="noopener noreferrer">
-    Apply Now
+  <Button variant="default" asChild>
+    <a href="/apply-url" target="_blank" rel="noopener noreferrer">
+      Apply Now
+    </a>
   </Button>
 );

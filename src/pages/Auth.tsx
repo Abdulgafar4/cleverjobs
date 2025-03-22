@@ -9,14 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Briefcase, Mail, Lock } from 'lucide-react';
+import { Briefcase, Mail, Lock, User, Building } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+
+type UserType = 'jobseeker' | 'employer';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [userType, setUserType] = useState<UserType>('jobseeker');
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -27,11 +30,14 @@ const Auth = () => {
     if (searchParams.get('signup') === 'true') {
       setActiveTab('signup');
     }
+    if (searchParams.get('type') === 'employer') {
+      setUserType('employer');
+    }
     
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate('/');
+        navigate('/dashboard');
       }
     });
   }, [location, navigate]);
@@ -62,7 +68,7 @@ const Auth = () => {
         description: "You have been signed in",
       });
       
-      navigate('/');
+      navigate('/onboarding');
     } catch (error: any) {
       toast({
         title: "Error signing in",
@@ -91,6 +97,11 @@ const Auth = () => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            user_type: userType,
+          }
+        }
       });
       
       if (error) throw error;
@@ -99,6 +110,8 @@ const Auth = () => {
         title: "Success",
         description: "Please check your email to confirm your account",
       });
+      
+      navigate('/onboarding');
     } catch (error: any) {
       toast({
         title: "Error signing up",
@@ -225,6 +238,31 @@ const Auth = () => {
               <TabsContent value="signup" className="p-0">
                 <form onSubmit={handleSignUp}>
                   <CardContent className="space-y-4 pt-4">
+                    {/* User Type Selection */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">I am a:</Label>
+                      <div className="grid grid-cols-2 gap-4 pt-1">
+                        <Button 
+                          type="button"
+                          variant={userType === 'jobseeker' ? 'default' : 'outline'}
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => setUserType('jobseeker')}
+                        >
+                          <User className="h-4 w-4" />
+                          Job Seeker
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant={userType === 'employer' ? 'default' : 'outline'}
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => setUserType('employer')}
+                        >
+                          <Building className="h-4 w-4" />
+                          Employer
+                        </Button>
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="email-signup" className="text-sm font-medium">Email</Label>
                       <div className="relative">
@@ -267,7 +305,7 @@ const Auth = () => {
                       className="w-full bg-primary hover:bg-primary/90" 
                       disabled={loading}
                     >
-                      {loading ? "Creating account..." : "Create Account"}
+                      {loading ? `Creating ${userType} account...` : `Create ${userType === 'jobseeker' ? 'Job Seeker' : 'Employer'} Account`}
                     </Button>
                     <p className="text-center text-sm text-muted-foreground mt-2">
                       Already have an account?{" "}

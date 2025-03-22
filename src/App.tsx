@@ -12,6 +12,9 @@ import JobDetail from "./pages/JobDetail";
 import Companies from "./pages/Companies";
 import CompanyProfile from "./pages/CompanyProfile";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 // Add Framer Motion for animations
@@ -43,6 +46,9 @@ const App = () => {
               <Route path="/companies" element={<Companies />} />
               <Route path="/companies/:id" element={<CompanyProfile />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>

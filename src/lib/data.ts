@@ -142,7 +142,7 @@ export const jobs: Job[] = [
       'Experience with iOS frameworks such as Core Data, Core Animation',
       'Experience with RESTful APIs to connect iOS applications to back-end services',
       'Knowledge of other web technologies and UI/UX standards',
-      'Understanding of Apple's design principles and interface guidelines'
+      "Understanding of Apple's design principles and interface guidelines"
     ],
     logo: 'https://logo.clearbit.com/apple.com'
   },
@@ -198,7 +198,7 @@ export const jobs: Job[] = [
     posted: '1 week ago',
     featured: false,
     requirements: [
-      'Master's degree or PhD in HCI, Cognitive Psychology, or related field',
+      "Master's degree or PhD in HCI, Cognitive Psychology, or related field",
       '2+ years experience in UX research',
       'Experience with qualitative and quantitative research methods',
       'Strong communication and presentation skills',
@@ -258,7 +258,7 @@ export const jobs: Job[] = [
     posted: '3 days ago',
     featured: true,
     requirements: [
-      'Master's or PhD in a quantitative field (Statistics, Mathematics, Computer Science)',
+      "Master's or PhD in a quantitative field (Statistics, Mathematics, Computer Science)",
       'Experience with statistical analysis and machine learning',
       'Proficiency in Python, R, or similar programming languages',
       'Experience with SQL and data visualization tools',

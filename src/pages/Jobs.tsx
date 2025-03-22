@@ -40,14 +40,14 @@ const Jobs = () => {
     });
     
     // Set initial filters based on URL params
-    if (locParam) {
+    if (locParam && locParam !== 'any') {
       setFilters(prev => ({
         ...prev,
         location: [locParam]
       }));
     }
     
-    if (typeParam) {
+    if (typeParam && typeParam !== 'any') {
       setFilters(prev => ({
         ...prev,
         type: [typeParam]
@@ -86,17 +86,29 @@ const Jobs = () => {
     setSearchParams(values);
     
     // Update filters based on search form
-    if (values.location) {
+    if (values.location && values.location !== 'any') {
       setFilters(prev => ({
         ...prev,
         location: [values.location]
       }));
+    } else if (values.location === 'any') {
+      // Clear location filter when "Any location" is selected
+      setFilters(prev => ({
+        ...prev,
+        location: []
+      }));
     }
     
-    if (values.type) {
+    if (values.type && values.type !== 'any') {
       setFilters(prev => ({
         ...prev,
         type: [values.type]
+      }));
+    } else if (values.type === 'any') {
+      // Clear type filter when "Any type" is selected
+      setFilters(prev => ({
+        ...prev,
+        type: []
       }));
     }
   };

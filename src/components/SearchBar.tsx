@@ -85,7 +85,7 @@ const SearchBar = ({
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any location</SelectItem>
+              <SelectItem value="any">Any location</SelectItem>
               {locations.map((loc) => (
                 <SelectItem key={loc} value={loc}>{loc}</SelectItem>
               ))}
@@ -97,7 +97,7 @@ const SearchBar = ({
               <SelectValue placeholder="Job type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any type</SelectItem>
+              <SelectItem value="any">Any type</SelectItem>
               {jobTypes.map((jobType) => (
                 <SelectItem key={jobType} value={jobType}>{jobType}</SelectItem>
               ))}
@@ -135,7 +135,7 @@ const SearchBar = ({
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any location</SelectItem>
+              <SelectItem value="any">Any location</SelectItem>
               {locations.map((loc) => (
                 <SelectItem key={loc} value={loc}>{loc}</SelectItem>
               ))}
@@ -149,7 +149,7 @@ const SearchBar = ({
               <SelectValue placeholder="Job type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any type</SelectItem>
+              <SelectItem value="any">Any type</SelectItem>
               {jobTypes.map((jobType) => (
                 <SelectItem key={jobType} value={jobType}>{jobType}</SelectItem>
               ))}

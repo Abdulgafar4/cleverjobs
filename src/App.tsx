@@ -11,6 +11,7 @@ import Jobs from "./pages/Jobs";
 import JobDetail from "./pages/JobDetail";
 import Companies from "./pages/Companies";
 import CompanyProfile from "./pages/CompanyProfile";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 // Add Framer Motion for animations
@@ -41,6 +42,7 @@ const App = () => {
               <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/companies/:id" element={<CompanyProfile />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>

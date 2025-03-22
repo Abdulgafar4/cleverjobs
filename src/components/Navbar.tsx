@@ -4,10 +4,14 @@ import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Briefcase } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,6 +21,27 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   return (
     <header
@@ -57,12 +82,25 @@ const Navbar = () => {
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" className="rounded-full">
-            Sign In
-          </Button>
-          <Button className="rounded-full">
-            Post a Job
-          </Button>
+          {user ? (
+            <>
+              <Button variant="ghost" className="rounded-full" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+              <Button className="rounded-full" onClick={() => navigate('/post-job')}>
+                Post a Job
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" className="rounded-full" onClick={() => navigate('/auth')}>
+                Sign In
+              </Button>
+              <Button className="rounded-full" onClick={() => navigate('/auth?signup=true')}>
+                Post a Job
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -102,12 +140,25 @@ const Navbar = () => {
               Companies
             </Link>
             <div className="pt-2 flex flex-col space-y-2">
-              <Button variant="outline" className="w-full justify-start">
-                Sign In
-              </Button>
-              <Button className="w-full justify-start">
-                Post a Job
-              </Button>
+              {user ? (
+                <>
+                  <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+                    Sign Out
+                  </Button>
+                  <Button className="w-full justify-start" onClick={() => navigate('/post-job')}>
+                    Post a Job
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/auth')}>
+                    Sign In
+                  </Button>
+                  <Button className="w-full justify-start" onClick={() => navigate('/auth?signup=true')}>
+                    Post a Job
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>

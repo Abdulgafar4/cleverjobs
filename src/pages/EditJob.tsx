@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,9 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Building, MapPin, DollarSign, Clock } from 'lucide-react';
+import { Briefcase, Building, MapPin, DollarSign, ArrowLeft } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import DashboardSidebar from '@/components/DashboardSidebar';
+import { sampleJobListings } from '@/lib/data';
 
 // Form schema for job posting
 const jobFormSchema = z.object({
@@ -23,6 +24,7 @@ const jobFormSchema = z.object({
   company: z.string().min(2, "Company name is required"),
   location: z.string().min(2, "Location is required"),
   type: z.string().min(1, "Job type is required"),
+  status: z.string().min(1, "Status is required"),
   salary: z.string().optional(),
   description: z.string().min(20, "Job description must be at least 20 characters"),
   requirements: z.string().min(20, "Requirements must be at least 20 characters"),
@@ -31,14 +33,31 @@ const jobFormSchema = z.object({
 
 type JobFormValues = z.infer<typeof jobFormSchema>;
 
-const PostJob = () => {
-  const [loading, setLoading] = useState(false);
+const EditJob = () => {
+  const { id } = useParams<{ id: string }>();
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userType, setUserType] = useState<'jobseeker' | 'employer' | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  React.useEffect(() => {
+  const form = useForm<JobFormValues>({
+    resolver: zodResolver(jobFormSchema),
+    defaultValues: {
+      title: "",
+      company: "",
+      location: "",
+      type: "",
+      status: "",
+      salary: "",
+      description: "",
+      requirements: "",
+      applicationUrl: ""
+    }
+  });
+
+  useEffect(() => {
     async function getUser() {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -63,61 +82,79 @@ const PostJob = () => {
         navigate('/auth');
         return;
       }
-    }
-    
-    getUser();
-  }, [navigate]);
-  
-  const form = useForm<JobFormValues>({
-    resolver: zodResolver(jobFormSchema),
-    defaultValues: {
-      title: "",
-      company: "",
-      location: "",
-      type: "",
-      salary: "",
-      description: "",
-      requirements: "",
-      applicationUrl: ""
-    }
-  });
 
-  async function onSubmit(data: JobFormValues) {
-    setLoading(true);
-    
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      // In a real app, fetch the job data from your database
+      // For now, find the job in our sample data
+      const jobListing = sampleJobListings.find(job => job.id === id);
       
-      if (!sessionData?.session) {
+      if (!jobListing) {
         toast({
-          title: "Authentication required",
-          description: "Please sign in to post a job",
+          title: "Job not found",
+          description: "The job listing you're trying to edit doesn't exist.",
           variant: "destructive"
         });
-        navigate('/auth');
+        navigate('/jobs/manage');
         return;
       }
       
-      // In a real app, you would save this to Supabase
-      console.log("Submitting job data:", data);
-      
-      toast({
-        title: "Job posted successfully!",
-        description: "Your job listing has been created",
+      // Set form values from job listing
+      form.reset({
+        title: jobListing.title,
+        company: jobListing.company,
+        location: jobListing.location,
+        type: jobListing.type,
+        status: jobListing.status,
+        salary: "$80,000 - $120,000", // Example data
+        description: "This is an example job description for the " + jobListing.title + " position. In a real app, this would come from your database.",
+        requirements: "- 3+ years of experience\n- Bachelor's degree\n- Strong communication skills",
+        applicationUrl: "https://example.com/apply"
       });
       
-      // Navigate to dashboard
-      navigate('/dashboard');
-    } catch (error) {
-      console.error("Error posting job:", error);
+      setLoading(false);
+    }
+    
+    getUser();
+  }, [navigate, id, form, toast]);
+
+  async function onSubmit(data: JobFormValues) {
+    setSubmitLoading(true);
+    
+    try {
+      // In a real app, you would update the job in your database
+      console.log("Updating job data:", data);
+      
       toast({
-        title: "Error posting job",
+        title: "Job updated successfully!",
+        description: "Your job listing has been updated",
+      });
+      
+      // Navigate back to manage jobs
+      navigate('/jobs/manage');
+    } catch (error) {
+      console.error("Error updating job:", error);
+      toast({
+        title: "Error updating job",
         description: "Something went wrong. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="sidebar-layout">
+        <DashboardSidebar 
+          userType={userType} 
+          userName={user?.user_metadata?.first_name || 'User'} 
+          companyName={user?.user_metadata?.company_name || 'Company'}
+        />
+        <main className="dashboard-content">
+          <div className="flex items-center justify-center min-h-screen">Loading...</div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -130,16 +167,22 @@ const PostJob = () => {
       
       <main className="dashboard-content">
         <div className="container px-4 sm:px-6 max-w-3xl mx-auto py-8">
-          <h1 className="text-3xl font-bold mb-2">Post a New Job</h1>
-          <p className="text-muted-foreground mb-8">
-            Fill out the form below to create a new job listing
-          </p>
+          <div className="mb-6">
+            <Button variant="ghost" onClick={() => navigate('/jobs/manage')} className="mb-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Manage Jobs
+            </Button>
+            <h1 className="text-3xl font-bold mb-2">Edit Job</h1>
+            <p className="text-muted-foreground mb-6">
+              Update the details of your job listing
+            </p>
+          </div>
           
           <Card>
             <CardHeader>
               <CardTitle>Job Details</CardTitle>
               <CardDescription>
-                Provide detailed information about the position
+                Make changes to your job listing information
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -225,16 +268,40 @@ const PostJob = () => {
                     </div>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="salary">Salary Range (Optional)</Label>
-                    <div className="relative mt-1.5">
-                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="salary"
-                        placeholder="e.g. $80,000 - $100,000 or Competitive"
-                        className="pl-9"
-                        {...form.register("salary")}
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="salary">Salary Range (Optional)</Label>
+                      <div className="relative mt-1.5">
+                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="salary"
+                          placeholder="e.g. $80,000 - $100,000 or Competitive"
+                          className="pl-9"
+                          {...form.register("salary")}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="status">Status</Label>
+                      <Select 
+                        onValueChange={(value) => form.setValue("status", value)}
+                        defaultValue={form.getValues("status")}
+                      >
+                        <SelectTrigger id="status">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="paused">Paused</SelectItem>
+                          <SelectItem value="closed">Closed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {form.formState.errors.status && (
+                        <p className="text-sm text-destructive mt-1">
+                          {form.formState.errors.status.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                   
@@ -288,12 +355,12 @@ const PostJob = () => {
             </CardContent>
             <CardFooter>
               <div className="flex justify-end gap-4 w-full">
-                <Button variant="outline" onClick={() => navigate('/dashboard')}>Cancel</Button>
+                <Button variant="outline" onClick={() => navigate('/jobs/manage')}>Cancel</Button>
                 <Button 
                   onClick={form.handleSubmit(onSubmit)} 
-                  disabled={loading}
+                  disabled={submitLoading}
                 >
-                  {loading ? "Submitting..." : "Post Job"}
+                  {submitLoading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </CardFooter>
@@ -304,4 +371,4 @@ const PostJob = () => {
   );
 };
 
-export default PostJob;
+export default EditJob;

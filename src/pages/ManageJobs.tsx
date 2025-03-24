@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -36,8 +35,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { sampleJobListings } from '@/lib/data';
 
-// Interface for job listings
 interface JobListing {
   id: string;
   title: string;
@@ -49,46 +54,19 @@ interface JobListing {
   applicants: number;
 }
 
-// Sample job listings data (this would come from your database in production)
-const sampleJobListings: JobListing[] = [
-  {
-    id: '1',
-    title: 'Senior React Developer',
-    company: 'TechCorp',
-    location: 'San Francisco, CA',
-    type: 'Full-time',
-    status: 'active',
-    posted_date: '2023-10-15',
-    applicants: 12
-  },
-  {
-    id: '2',
-    title: 'UI/UX Designer',
-    company: 'DesignHub',
-    location: 'Remote',
-    type: 'Contract',
-    status: 'active',
-    posted_date: '2023-10-10',
-    applicants: 8
-  },
-  {
-    id: '3',
-    title: 'Marketing Manager',
-    company: 'GrowthCo',
-    location: 'New York, NY',
-    type: 'Full-time',
-    status: 'paused',
-    posted_date: '2023-09-30',
-    applicants: 15
-  },
-];
-
 const ManageJobs = () => {
   const [user, setUser] = useState<any>(null);
   const [userType, setUserType] = useState<'jobseeker' | 'employer' | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filteredJobs, setFilteredJobs] = useState<JobListing[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof JobListing,
+    direction: 'ascending' | 'descending'
+  } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -103,12 +81,10 @@ const ManageJobs = () => {
       
       setUser(session.user);
       
-      // Get user type from metadata
       const userMetadata = session.user.user_metadata;
       if (userMetadata && userMetadata.user_type) {
         setUserType(userMetadata.user_type);
         
-        // If user is not an employer, redirect to dashboard
         if (userMetadata.user_type !== 'employer') {
           navigate('/dashboard');
           return;
@@ -118,10 +94,9 @@ const ManageJobs = () => {
         return;
       }
 
-      // In a real app, fetch jobs from your database
-      // For now, use the sample data after a small delay to simulate API call
       setTimeout(() => {
         setJobs(sampleJobListings);
+        setFilteredJobs(sampleJobListings);
         setLoading(false);
       }, 500);
     }
@@ -129,8 +104,37 @@ const ManageJobs = () => {
     getUser();
   }, [navigate]);
 
+  useEffect(() => {
+    let result = jobs;
+    
+    if (searchTerm) {
+      result = result.filter(job => 
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.location.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (statusFilter) {
+      result = result.filter(job => job.status === statusFilter);
+    }
+    
+    if (sortConfig !== null) {
+      result = [...result].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    setFilteredJobs(result);
+  }, [jobs, searchTerm, statusFilter, sortConfig]);
+
   const handleDelete = (jobId: string) => {
-    // Here you would call your API to delete the job
     setJobs(jobs.filter(job => job.id !== jobId));
     toast({
       title: "Job deleted",
@@ -139,12 +143,10 @@ const ManageJobs = () => {
   };
 
   const handleEdit = (jobId: string) => {
-    // Navigate to edit job page
     navigate(`/edit-job/${jobId}`);
   };
 
   const handleView = (jobId: string) => {
-    // Navigate to view job page
     navigate(`/jobs/${jobId}`);
   };
 
@@ -152,11 +154,15 @@ const ManageJobs = () => {
     navigate('/post-job');
   };
 
-  const filteredJobs = jobs.filter(job => 
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const requestSort = (key: keyof JobListing) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    
+    setSortConfig({ key, direction });
+  };
 
   const getStatusBadge = (status: string) => {
     switch(status) {
@@ -213,9 +219,27 @@ const ManageJobs = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setStatusFilter(null)}>
+                    All Statuses
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('active')}>
+                    Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('paused')}>
+                    Paused
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('closed')}>
+                    Closed
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {filteredJobs.length > 0 ? (
@@ -224,20 +248,32 @@ const ManageJobs = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[300px]">
-                        <Button variant="ghost" className="p-0 hover:bg-transparent">
+                        <Button 
+                          variant="ghost" 
+                          className="p-0 hover:bg-transparent"
+                          onClick={() => requestSort('title')}
+                        >
                           <span>Job Title</span>
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </Button>
                       </TableHead>
                       <TableHead>
-                        <Button variant="ghost" className="p-0 hover:bg-transparent">
+                        <Button 
+                          variant="ghost" 
+                          className="p-0 hover:bg-transparent"
+                          onClick={() => requestSort('location')}
+                        >
                           <span>Location</span>
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </Button>
                       </TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">
-                        <Button variant="ghost" className="p-0 hover:bg-transparent">
+                        <Button 
+                          variant="ghost" 
+                          className="p-0 hover:bg-transparent"
+                          onClick={() => requestSort('applicants')}
+                        >
                           <span>Applicants</span>
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </Button>

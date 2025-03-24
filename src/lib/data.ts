@@ -1,4 +1,3 @@
-
 export type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Internship' | 'Remote';
 
 export interface Job {
@@ -367,3 +366,6 @@ export const jobs: Job[] = [
     logo: 'https://logo.clearbit.com/slack.com'
   }
 ];
+
+//
+

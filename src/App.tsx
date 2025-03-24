@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import PostJob from "./pages/PostJob";
 import ApplyJob from "./pages/ApplyJob";
 import ManageJobs from "./pages/ManageJobs";
+import EditJob from "./pages/EditJob";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Add Framer Motion for animations
@@ -50,6 +51,7 @@ const App = () => {
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/jobs/:id" element={<JobDetail />} />
                 <Route path="/jobs/manage" element={<ManageJobs />} />
+                <Route path="/edit-job/:id" element={<EditJob />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/companies/:id" element={<CompanyProfile />} />
                 <Route path="/auth" element={<Auth />} />
@@ -58,6 +60,7 @@ const App = () => {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/post-job" element={<PostJob />} />
                 <Route path="/apply/:id" element={<ApplyJob />} />
+                <Route path="/company/profile" element={<CompanyProfile />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AnimatePresence>

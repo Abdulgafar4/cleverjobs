@@ -1,27 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { jobs } from '@/lib/data';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Briefcase, Upload } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
+import { Briefcase, Building, User, FileText, Phone, Mail } from 'lucide-react';
 
-// Form schema for job application
+// Application form schema
 const applicationSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(7, "Please enter a valid phone number"),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().min(10, "Valid phone number is required"),
   coverLetter: z.string().min(50, "Cover letter must be at least 50 characters"),
-  resumeUrl: z.string().optional()
+  resume: z.string().optional()
 });
 
 type ApplicationValues = z.infer<typeof applicationSchema>;
@@ -29,66 +28,70 @@ type ApplicationValues = z.infer<typeof applicationSchema>;
 const ApplyJob = () => {
   const { id } = useParams<{ id: string }>();
   const [job, setJob] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const form = useForm<ApplicationValues>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-      coverLetter: "",
-      resumeUrl: ""
+      fullName: '',
+      email: '',
+      phone: '',
+      coverLetter: '',
+      resume: ''
     }
   });
 
   useEffect(() => {
-    // Find the job by ID
-    const selectedJob = jobs.find(j => j.id === id);
-    if (!selectedJob) {
-      navigate('/jobs');
-      return;
-    }
-    setJob(selectedJob);
-  }, [id, navigate]);
+    // In a real app, fetch job details from Supabase
+    setJob({
+      id,
+      title: 'Senior Frontend Developer',
+      company: 'Example Corp',
+      location: 'Remote',
+    });
+    setLoading(false);
+  }, [id]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setResumeFile(e.target.files[0]);
-    }
-  };
-
-  async function onSubmit(data: ApplicationValues) {
-    setLoading(true);
+  const onSubmit = async (data: ApplicationValues) => {
+    setSubmitting(true);
     
     try {
-      // Check if user is logged in
+      // Check if user is authenticated
       const { data: session } = await supabase.auth.getSession();
       
       if (!session?.session) {
+        // Save application data to local storage for after login
+        localStorage.setItem('pendingApplication', JSON.stringify({
+          jobId: id,
+          ...data
+        }));
+        
         toast({
           title: "Authentication required",
-          description: "Please sign in to apply for this job",
-          variant: "destructive"
+          description: "Please sign in to complete your application",
         });
-        navigate('/auth');
+        
+        navigate('/auth', { state: { returnTo: `/apply/${id}` } });
         return;
       }
       
-      // In a real app, you would upload the resume and save application data to Supabase
-      console.log("Submitting application:", data);
+      // In a real app, save application to Supabase
+      console.log("Submitting application:", {
+        jobId: id,
+        userId: session.session.user.id,
+        ...data
+      });
       
       toast({
         title: "Application submitted!",
-        description: "Your application has been sent successfully",
+        description: "Your application has been sent to the employer",
       });
       
-      // Navigate back to jobs listing
-      navigate('/jobs');
+      // Navigate back to job listing
+      navigate(`/jobs/${id}`);
     } catch (error) {
       console.error("Error submitting application:", error);
       toast({
@@ -97,11 +100,11 @@ const ApplyJob = () => {
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  }
+  };
 
-  if (!job) {
+  if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
@@ -110,37 +113,37 @@ const ApplyJob = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background py-20">
         <div className="container px-4 sm:px-6 max-w-3xl mx-auto">
           <div className="mb-6">
-            <Link 
-              to={`/jobs/${id}`}
-              className="inline-flex items-center text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to job details
-            </Link>
+            <h1 className="text-3xl font-bold mb-2">Apply for Position</h1>
+            <div className="flex items-center text-muted-foreground">
+              <Briefcase className="h-4 w-4 mr-2" />
+              <span className="font-medium text-foreground">{job.title}</span>
+              <span className="mx-2">at</span>
+              <span className="font-medium text-foreground">{job.company}</span>
+            </div>
           </div>
-          
-          <h1 className="text-3xl font-bold mb-2">Apply for {job.title}</h1>
-          <p className="text-muted-foreground mb-8">
-            at {job.company} • {job.location}
-          </p>
           
           <Card>
             <CardHeader>
-              <CardTitle>Job Application</CardTitle>
+              <CardTitle>Application Form</CardTitle>
               <CardDescription>
                 Complete the form below to apply for this position
               </CardDescription>
             </CardHeader>
+            
             <CardContent>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      placeholder="John Doe"
-                      {...form.register("fullName")}
-                    />
+                    <div className="relative mt-1.5">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="fullName"
+                        placeholder="Enter your full name"
+                        className="pl-9"
+                        {...form.register("fullName")}
+                      />
+                    </div>
                     {form.formState.errors.fullName && (
                       <p className="text-sm text-destructive mt-1">
                         {form.formState.errors.fullName.message}
@@ -151,12 +154,16 @@ const ApplyJob = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john.doe@example.com"
-                        {...form.register("email")}
-                      />
+                      <div className="relative mt-1.5">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="your.email@example.com"
+                          className="pl-9"
+                          {...form.register("email")}
+                        />
+                      </div>
                       {form.formState.errors.email && (
                         <p className="text-sm text-destructive mt-1">
                           {form.formState.errors.email.message}
@@ -166,11 +173,15 @@ const ApplyJob = () => {
                     
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        placeholder="+1 (555) 123-4567"
-                        {...form.register("phone")}
-                      />
+                      <div className="relative mt-1.5">
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          placeholder="(123) 456-7890"
+                          className="pl-9"
+                          {...form.register("phone")}
+                        />
+                      </div>
                       {form.formState.errors.phone && (
                         <p className="text-sm text-destructive mt-1">
                           {form.formState.errors.phone.message}
@@ -180,29 +191,15 @@ const ApplyJob = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="resume">Resume/CV</Label>
-                    <div className="mt-1.5">
-                      <Label 
-                        htmlFor="resume" 
-                        className="flex items-center justify-center border-2 border-dashed border-input rounded-md py-6 cursor-pointer hover:border-primary/50 transition-colors"
-                      >
-                        <div className="flex flex-col items-center">
-                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                          <span className="text-sm font-medium">
-                            {resumeFile ? resumeFile.name : "Click to upload your resume"}
-                          </span>
-                          <span className="text-xs text-muted-foreground mt-1">
-                            PDF, DOCX or TXT (max 5MB)
-                          </span>
-                        </div>
-                        <Input
-                          id="resume"
-                          type="file"
-                          accept=".pdf,.docx,.doc,.txt"
-                          className="hidden"
-                          onChange={handleFileChange}
-                        />
-                      </Label>
+                    <Label htmlFor="resume">Resume Link (Optional)</Label>
+                    <div className="relative mt-1.5">
+                      <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="resume"
+                        placeholder="https://example.com/your-resume.pdf"
+                        className="pl-9"
+                        {...form.register("resume")}
+                      />
                     </div>
                   </div>
                   
@@ -210,8 +207,8 @@ const ApplyJob = () => {
                     <Label htmlFor="coverLetter">Cover Letter</Label>
                     <Textarea
                       id="coverLetter"
-                      placeholder="Explain why you are a good fit for this position..."
-                      className="min-h-40"
+                      placeholder="Tell us why you're interested in this position and why you'd be a great fit..."
+                      className="min-h-32"
                       {...form.register("coverLetter")}
                     />
                     {form.formState.errors.coverLetter && (
@@ -223,19 +220,15 @@ const ApplyJob = () => {
                 </div>
               </form>
             </CardContent>
+            
             <CardFooter>
               <div className="flex justify-end gap-4 w-full">
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate(`/jobs/${id}`)}
-                >
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => navigate(`/jobs/${id}`)}>Cancel</Button>
                 <Button 
                   onClick={form.handleSubmit(onSubmit)} 
-                  disabled={loading}
+                  disabled={submitting}
                 >
-                  {loading ? "Submitting..." : "Submit Application"}
+                  {submitting ? "Submitting..." : "Submit Application"}
                 </Button>
               </div>
             </CardFooter>

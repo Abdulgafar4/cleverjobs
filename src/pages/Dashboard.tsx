@@ -61,6 +61,10 @@ const Dashboard = () => {
     navigate('/auth');
   };
 
+  const navigateToPostJob = () => {
+    navigate('/post-job');
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -317,11 +321,9 @@ const Dashboard = () => {
                     <p className="text-muted-foreground mb-4 max-w-md mx-auto">
                       Start attracting qualified candidates by posting a job opening at your company
                     </p>
-                    <Button asChild>
-                      <a href="/jobs/new">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Post New Job
-                      </a>
+                    <Button onClick={navigateToPostJob}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Post New Job
                     </Button>
                   </div>
                 </CardContent>

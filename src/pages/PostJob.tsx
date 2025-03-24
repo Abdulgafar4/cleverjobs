@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,9 +52,9 @@ const PostJob = () => {
     setLoading(true);
     
     try {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      if (!session?.session) {
+      if (!sessionData?.session) {
         toast({
           title: "Authentication required",
           description: "Please sign in to post a job",
@@ -73,7 +72,7 @@ const PostJob = () => {
         description: "Your job listing has been created",
       });
       
-      // Navigate to dashboard or job listing
+      // Navigate to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error("Error posting job:", error);

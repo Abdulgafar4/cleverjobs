@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +20,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Toggle } from '@/components/ui/toggle';
 import AnimatedTransition from '@/components/AnimatedTransition';
 
-// Define available themes with labels and colors for preview
 const themes = [
   { name: "default", label: "Default", primaryColor: "#9b87f5", bgClass: "bg-primary" },
   { name: "blue", label: "Blue", primaryColor: "#0ea5e9", bgClass: "bg-blue-500" },
@@ -39,7 +37,6 @@ const Settings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   
-  // Settings state
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [selectedTheme, setSelectedTheme] = useState("default");
@@ -63,14 +60,12 @@ const Settings = () => {
       
       setUser(session.user);
       
-      // Get user type from metadata
       const userMetadata = session.user.user_metadata;
       if (userMetadata) {
         setUserType(userMetadata.user_type);
         setFirstName(userMetadata.first_name || "");
         setLastName(userMetadata.last_name || "");
         setCompany(userMetadata.company_name || "");
-        // Set other user preferences if they exist
       } else {
         toast({
           title: "Error",
@@ -123,7 +118,6 @@ const Settings = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background dark:from-primary/10 dark:to-background">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Sidebar */}
             <div className="w-full lg:w-64 space-y-6">
               <Card className="sticky top-20">
                 <CardContent className="p-0">
@@ -189,7 +183,6 @@ const Settings = () => {
               </Card>
             </div>
             
-            {/* Main content */}
             <div className="flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>

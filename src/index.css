@@ -25,6 +25,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 262 66% 75%;
     --radius: 0.75rem;
+    --sidebar-width: 16rem;
   }
  
   .dark {
@@ -76,6 +77,34 @@
     --primary-foreground: 210 40% 98%;
     --ring: 316 91% 60%;
   }
+  
+  /* Red Theme */
+  [data-theme="red"] {
+    --primary: 0 84% 60%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 0 84% 60%;
+  }
+  
+  /* Teal Theme */
+  [data-theme="teal"] {
+    --primary: 174 84% 36%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 174 84% 36%;
+  }
+  
+  /* Purple Theme */
+  [data-theme="purple"] {
+    --primary: 262 80% 50%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 262 80% 50%;
+  }
+  
+  /* Amber Theme */
+  [data-theme="amber"] {
+    --primary: 45 93% 47%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 45 93% 47%;
+  }
 }
 
 @layer base {
@@ -107,4 +136,17 @@
   100% {
     background-position: 0% 50%;
   }
+}
+
+/* Dashboard layout styles */
+.dashboard-content {
+  @apply pt-20; /* Top margin to prevent overlap with navbar */
+}
+
+.sidebar-layout {
+  @apply flex min-h-screen bg-background;
+}
+
+.sidebar-layout main {
+  @apply flex-1 px-4 md:px-6 pt-16 pb-6 overflow-y-auto;
 }

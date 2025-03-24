@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import PostJob from "./pages/PostJob";
 import ApplyJob from "./pages/ApplyJob";
+import ManageJobs from "./pages/ManageJobs";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Add Framer Motion for animations
@@ -48,6 +49,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/jobs/manage" element={<ManageJobs />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/companies/:id" element={<CompanyProfile />} />
                 <Route path="/auth" element={<Auth />} />

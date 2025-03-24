@@ -48,6 +48,34 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 262 66% 75%;
   }
+  
+  /* Blue Theme */
+  [data-theme="blue"] {
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 217 91% 60%;
+  }
+  
+  /* Green Theme */
+  [data-theme="green"] {
+    --primary: 142 76% 45%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 142 76% 45%;
+  }
+  
+  /* Orange Theme */
+  [data-theme="orange"] {
+    --primary: 25 95% 53%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 25 95% 53%;
+  }
+  
+  /* Pink Theme */
+  [data-theme="pink"] {
+    --primary: 316 91% 60%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 316 91% 60%;
+  }
 }
 
 @layer base {

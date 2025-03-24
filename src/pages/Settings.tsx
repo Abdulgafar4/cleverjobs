@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -48,6 +49,12 @@ const Settings = () => {
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [applicationAlerts, setApplicationAlerts] = useState(true);
   const [messageNotifications, setMessageNotifications] = useState(true);
+  
+  // Logo and banner state
+  const [companyLogo, setCompanyLogo] = useState<File | null>(null);
+  const [companyBanner, setCompanyBanner] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
   useEffect(() => {
     async function getUser() {
@@ -66,6 +73,21 @@ const Settings = () => {
         setFirstName(userMetadata.first_name || "");
         setLastName(userMetadata.last_name || "");
         setCompany(userMetadata.company_name || "");
+        
+        // Load saved theme preference if available
+        if (userMetadata.theme_preference) {
+          setSelectedTheme(userMetadata.theme_preference);
+          updateRootColors(userMetadata.theme_preference);
+        }
+        
+        // Load logo and banner if available
+        if (userMetadata.logo_url) {
+          setLogoPreview(userMetadata.logo_url);
+        }
+        
+        if (userMetadata.banner_url) {
+          setBannerPreview(userMetadata.banner_url);
+        }
       } else {
         toast({
           title: "Error",
@@ -83,7 +105,79 @@ const Settings = () => {
     getUser();
   }, [navigate, toast]);
 
-  const saveProfile = () => {
+  // Function to update the root CSS variables with the selected theme colors
+  const updateRootColors = (themeName: string) => {
+    const selectedTheme = themes.find(t => t.name === themeName);
+    if (!selectedTheme) return;
+    
+    const root = document.documentElement;
+    root.style.setProperty('--primary', selectedTheme.primaryColor);
+    document.body.dataset.theme = themeName;
+    
+    // Update user metadata with theme preference
+    if (user) {
+      supabase.auth.updateUser({
+        data: { theme_preference: themeName }
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error updating theme preference:', error);
+        }
+      });
+    }
+  };
+  
+  // Handle theme selection change
+  const handleThemeChange = (value: string) => {
+    setSelectedTheme(value);
+    updateRootColors(value);
+    toast({
+      title: "Theme updated",
+      description: `Theme has been changed to ${value}`,
+    });
+  };
+  
+  // Handle file uploads for logo and banner
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setCompanyLogo(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+  
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setCompanyBanner(file);
+      setBannerPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const saveProfile = async () => {
+    // Update user metadata
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        company_name: company,
+        job_title: jobTitle,
+        bio: bio,
+        theme_preference: selectedTheme
+      }
+    });
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // TODO: Upload logo and banner to storage when Supabase is connected
+    // This would normally upload the files to storage and update metadata with URLs
+    
     toast({
       title: "Profile saved",
       description: "Your profile has been updated successfully",
@@ -97,7 +191,20 @@ const Settings = () => {
     });
   };
 
-  const changePassword = () => {
+  const changePassword = async () => {
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: window.location.origin + '/settings?tab=security',
+    });
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     toast({
       title: "Reset email sent",
       description: "Check your email for a password reset link",
@@ -123,7 +230,15 @@ const Settings = () => {
                 <CardContent className="p-0">
                   <div className="p-6 flex flex-col items-center text-center border-b">
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <UserCircle className="w-10 h-10 text-primary" />
+                      {logoPreview ? (
+                        <img 
+                          src={logoPreview} 
+                          alt="Profile" 
+                          className="w-20 h-20 rounded-full object-cover"
+                        />
+                      ) : (
+                        <UserCircle className="w-10 h-10 text-primary" />
+                      )}
                     </div>
                     <h3 className="font-medium">{userType === 'jobseeker' ? `${firstName} ${lastName}` : company}</h3>
                     <p className="text-sm text-muted-foreground">
@@ -156,7 +271,7 @@ const Settings = () => {
                           My Profile
                         </Button>
                       ) : (
-                        <Button variant="ghost" className="w-full justify-start">
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/companies/my-company')}>
                           <Building className="mr-2 h-4 w-4" />
                           Company Profile
                         </Button>
@@ -302,6 +417,80 @@ const Settings = () => {
                               className="min-h-32" 
                             />
                           </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Company Logo</Label>
+                              <div className="mt-2 flex items-center gap-4">
+                                <div className="border rounded-md w-20 h-20 flex items-center justify-center bg-muted overflow-hidden">
+                                  {logoPreview ? (
+                                    <img 
+                                      src={logoPreview} 
+                                      alt="Company Logo" 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Building className="w-8 h-8 text-muted-foreground" />
+                                  )}
+                                </div>
+                                <div>
+                                  <Input
+                                    id="companyLogo"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleLogoChange}
+                                    className="hidden"
+                                  />
+                                  <Label
+                                    htmlFor="companyLogo"
+                                    className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                                  >
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload Logo
+                                  </Label>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Square image recommended (400x400px)
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label>Company Banner</Label>
+                              <div className="mt-2">
+                                <div className="border rounded-md h-32 flex items-center justify-center bg-muted overflow-hidden">
+                                  {bannerPreview ? (
+                                    <img 
+                                      src={bannerPreview} 
+                                      alt="Company Banner" 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Upload className="w-8 h-8 text-muted-foreground" />
+                                  )}
+                                </div>
+                                <div className="mt-2">
+                                  <Input
+                                    id="companyBanner"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleBannerChange}
+                                    className="hidden"
+                                  />
+                                  <Label
+                                    htmlFor="companyBanner"
+                                    className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                                  >
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload Banner
+                                  </Label>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Recommended size 1200x300px
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </>
                       )}
                     </CardContent>
@@ -387,7 +576,7 @@ const Settings = () => {
                         <RadioGroup 
                           className="grid grid-cols-5 gap-4" 
                           value={selectedTheme}
-                          onValueChange={setSelectedTheme}
+                          onValueChange={handleThemeChange}
                         >
                           {themes.map((themeOption) => (
                             <div key={themeOption.name} className="flex items-center space-x-2">
@@ -408,6 +597,11 @@ const Settings = () => {
                         </RadioGroup>
                       </div>
                     </CardContent>
+                    <CardFooter>
+                      <Button onClick={saveSettings}>
+                        Save Settings
+                      </Button>
+                    </CardFooter>
                   </Card>
                 </TabsContent>
                 

@@ -47,6 +47,13 @@ export function ThemeProvider({
     }
     
     root.classList.add(theme);
+    
+    // This ensures that any accent colors set in Settings are preserved
+    // when switching between light/dark modes
+    const accentColor = localStorage.getItem("jobboard-ui-accent");
+    if (accentColor) {
+      document.body.dataset.theme = accentColor;
+    }
   }, [theme]);
 
   const value = {

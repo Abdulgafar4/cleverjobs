@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { companies, jobs } from '@/lib/data';
@@ -99,8 +100,10 @@ const CompanyProfile = () => {
               </div>
             </div>
             <div className="flex justify-center gap-3">
-              <Button as="a" href={company.website} target="_blank" rel="noopener noreferrer">
-                Visit Website
+              <Button asChild>
+                <a href={company.website} target="_blank" rel="noopener noreferrer">
+                  Visit Website
+                </a>
               </Button>
               <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
                 <Share2 className="h-4 w-4" />

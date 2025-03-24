@@ -17,6 +17,8 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import PostJob from "./pages/PostJob";
+import ApplyJob from "./pages/ApplyJob";
 
 // Add Framer Motion for animations
 import { AnimatePresence } from "framer-motion";
@@ -50,6 +52,8 @@ const App = () => {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/post-job" element={<PostJob />} />
+              <Route path="/apply/:id" element={<ApplyJob />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>

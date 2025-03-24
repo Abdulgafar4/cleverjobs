@@ -3,14 +3,15 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Briefcase } from 'lucide-react';
+import { Menu, X, Briefcase, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
+  const [userType, setUserType] = useState<'jobseeker' | 'employer' | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,12 +27,24 @@ const Navbar = () => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
+      
+      // Get user type from metadata
+      if (session?.user?.user_metadata) {
+        setUserType(session.user.user_metadata.user_type || null);
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
+        
+        // Get user type from metadata
+        if (session?.user?.user_metadata) {
+          setUserType(session.user.user_metadata.user_type || null);
+        } else {
+          setUserType(null);
+        }
       }
     );
 
@@ -79,6 +92,14 @@ const Navbar = () => {
           >
             Companies
           </Link>
+          {user && userType === 'employer' && (
+            <Link 
+              to="/dashboard" 
+              className="text-foreground/80 hover:text-foreground transition-colors"
+            >
+              Dashboard
+            </Link>
+          )}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -87,9 +108,11 @@ const Navbar = () => {
               <Button variant="ghost" className="rounded-full" onClick={handleSignOut}>
                 Sign Out
               </Button>
-              <Button className="rounded-full" onClick={() => navigate('/post-job')}>
-                Post a Job
-              </Button>
+              {userType === 'employer' && (
+                <Button className="rounded-full" onClick={() => navigate('/post-job')}>
+                  <Plus className="w-4 h-4 mr-1" /> Post a Job
+                </Button>
+              )}
             </>
           ) : (
             <>
@@ -139,15 +162,26 @@ const Navbar = () => {
             >
               Companies
             </Link>
+            {user && userType === 'employer' && (
+              <Link 
+                to="/dashboard" 
+                className="px-4 py-2 rounded-md hover:bg-secondary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <div className="pt-2 flex flex-col space-y-2">
               {user ? (
                 <>
                   <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
                     Sign Out
                   </Button>
-                  <Button className="w-full justify-start" onClick={() => navigate('/post-job')}>
-                    Post a Job
-                  </Button>
+                  {userType === 'employer' && (
+                    <Button className="w-full justify-start" onClick={() => navigate('/post-job')}>
+                      <Plus className="w-4 h-4 mr-1" /> Post a Job
+                    </Button>
+                  )}
                 </>
               ) : (
                 <>

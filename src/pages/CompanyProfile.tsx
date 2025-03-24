@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { companies, jobs } from '@/lib/data';
@@ -30,7 +29,6 @@ const CompanyProfile = () => {
   return (
     <AnimatedTransition>
       <main className="min-h-screen">
-        {/* Cover image */}
         <div 
           className="h-64 md:h-80 bg-secondary/80 relative"
           style={{
@@ -62,7 +60,6 @@ const CompanyProfile = () => {
         </div>
         
         <div className="container px-4 sm:px-6 lg:px-8 mx-auto pt-20 pb-16">
-          {/* Back button */}
           <div className="mb-6">
             <Link 
               to="/companies"
@@ -73,7 +70,6 @@ const CompanyProfile = () => {
             </Link>
           </div>
           
-          {/* Company header */}
           <div className="text-center mb-10">
             <h1 className="text-3xl font-medium mb-1">{company.name}</h1>
             <p className="text-muted-foreground mb-4">{company.industry}</p>
@@ -114,7 +110,6 @@ const CompanyProfile = () => {
           
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-2/3">
-              {/* Company description */}
               <div className="bg-white rounded-xl border shadow-sm p-6 mb-8">
                 <h2 className="text-xl font-medium mb-4">About {company.name}</h2>
                 <div className="prose max-w-none">
@@ -124,7 +119,6 @@ const CompanyProfile = () => {
                 </div>
               </div>
               
-              {/* Open positions */}
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-medium flex items-center gap-2">
@@ -154,7 +148,6 @@ const CompanyProfile = () => {
             </div>
             
             <div className="lg:w-1/3">
-              {/* Company information */}
               <div className="bg-white rounded-xl border shadow-sm p-6 sticky top-24">
                 <h2 className="text-xl font-medium mb-4">Company Information</h2>
                 

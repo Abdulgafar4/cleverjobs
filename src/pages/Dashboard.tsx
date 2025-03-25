@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import {
   Briefcase, Plus, ChevronRight, PlusCircle, ListFilter
 } from 'lucide-react';
 import DashboardSidebar from '@/components/DashboardSidebar';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -159,10 +159,10 @@ const Dashboard = () => {
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full" asChild>
-                    <a href="/jobs/manage">
+                    <Link to="/jobs/manage">
                       Manage Listings
                       <ChevronRight className="ml-2 h-4 w-4" />
-                    </a>
+                    </Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -178,10 +178,10 @@ const Dashboard = () => {
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full" asChild>
-                    <a href="/applicants">
+                    <Link to="/applicants">
                       View Applicants
                       <ChevronRight className="ml-2 h-4 w-4" />
-                    </a>
+                    </Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -197,10 +197,10 @@ const Dashboard = () => {
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full" asChild>
-                    <a href="/company/profile">
+                    <Link to="/companies/profile">
                       Edit Profile
                       <ChevronRight className="ml-2 h-4 w-4" />
-                    </a>
+                    </Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -268,3 +268,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

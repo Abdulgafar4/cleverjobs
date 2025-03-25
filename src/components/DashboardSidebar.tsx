@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -120,11 +121,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               </Link>
             </Button>
             <Button 
-              variant={isActive("/company/profile") ? "secondary" : "ghost"} 
+              variant={isActive("/companies/profile") ? "secondary" : "ghost"} 
               className="w-full justify-start" 
               asChild
             >
-              <Link to="/company/profile">
+              <Link to="/companies/profile">
                 <Building className="mr-2 h-4 w-4" />
                 Company Profile
               </Link>

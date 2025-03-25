@@ -52,7 +52,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <div className="bg-primary/10 p-2 rounded-full">
           <Briefcase className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="text-xl font-bold">JobBoard</h2>
       </div>
       
       <div className="px-3 mb-6">
@@ -122,11 +121,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               </Link>
             </Button>
             <Button 
-              variant={isActive("/company/profile") ? "secondary" : "ghost"} 
+              variant={isActive("/companies/profile") ? "secondary" : "ghost"} 
               className="w-full justify-start" 
               asChild
             >
-              <Link to="/company/profile">
+              <Link to="/companies/profile">
                 <Building className="mr-2 h-4 w-4" />
                 Company Profile
               </Link>

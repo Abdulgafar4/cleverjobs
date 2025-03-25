@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <div className="bg-primary/10 p-2 rounded-full">
           <Briefcase className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="text-xl font-bold">JobBoard</h2>
       </div>
       
       <div className="px-3 mb-6">

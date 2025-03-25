@@ -41,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { sampleJobListings } from '@/lib/data';
+import { employerJobListings } from '@/lib/data';
 
 interface JobListing {
   id: string;
@@ -95,8 +95,8 @@ const ManageJobs = () => {
       }
 
       setTimeout(() => {
-        setJobs(sampleJobListings);
-        setFilteredJobs(sampleJobListings);
+        setJobs(employerJobListings);
+        setFilteredJobs(employerJobListings);
         setLoading(false);
       }, 500);
     }

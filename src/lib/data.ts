@@ -15,7 +15,7 @@ export interface Job {
   logo: string;
 }
 
-interface JobListing {
+export interface JobListing {
   id: string;
   title: string;
   company: string;
@@ -411,19 +411,8 @@ export const jobs: Job[] = [
   }
 ];
 
-// Add sample job listings for the ManageJobs and EditJob pages
-export interface JobListing {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  status: 'active' | 'paused' | 'closed';
-  posted_date: string;
-  applicants: number;
-}
-
-export const sampleJobListings: JobListing[] = [
+// Second set of job listings specifically for ManageJobs and EditJob pages
+export const employerJobListings: JobListing[] = [
   {
     id: 'job-1',
     title: 'Senior Frontend Developer',

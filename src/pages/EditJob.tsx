@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Building, MapPin, DollarSign, ArrowLeft } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import DashboardSidebar from '@/components/DashboardSidebar';
-import { sampleJobListings } from '@/lib/data';
+import { employerJobListings } from '@/lib/data';
 
 // Form schema for job posting
 const jobFormSchema = z.object({
@@ -85,7 +84,7 @@ const EditJob = () => {
 
       // In a real app, fetch the job data from your database
       // For now, find the job in our sample data
-      const jobListing = sampleJobListings.find(job => job.id === id);
+      const jobListing = employerJobListings.find(job => job.id === id);
       
       if (!jobListing) {
         toast({

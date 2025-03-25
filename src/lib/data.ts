@@ -15,6 +15,17 @@ export interface Job {
   logo: string;
 }
 
+interface JobListing {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  status: 'active' | 'paused' | 'closed';
+  posted_date: string;
+  applicants: number;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -40,6 +51,39 @@ export const locations = [
   'Chicago, IL',
   'Boston, MA',
   'Remote'
+];
+
+export const sampleJobListings: JobListing[] = [
+  {
+    id: '1',
+    title: 'Senior React Developer',
+    company: 'TechCorp',
+    location: 'San Francisco, CA',
+    type: 'Full-time',
+    status: 'active',
+    posted_date: '2023-10-15',
+    applicants: 12
+  },
+  {
+    id: '2',
+    title: 'UI/UX Designer',
+    company: 'DesignHub',
+    location: 'Remote',
+    type: 'Contract',
+    status: 'active',
+    posted_date: '2023-10-10',
+    applicants: 8
+  },
+  {
+    id: '3',
+    title: 'Marketing Manager',
+    company: 'GrowthCo',
+    location: 'New York, NY',
+    type: 'Full-time',
+    status: 'paused',
+    posted_date: '2023-09-30',
+    applicants: 15
+  },
 ];
 
 export const companies: Company[] = [

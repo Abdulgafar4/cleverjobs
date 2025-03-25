@@ -367,5 +367,67 @@ export const jobs: Job[] = [
   }
 ];
 
-//
+// Add sample job listings for the ManageJobs and EditJob pages
+export interface JobListing {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  status: 'active' | 'paused' | 'closed';
+  posted_date: string;
+  applicants: number;
+}
 
+export const sampleJobListings: JobListing[] = [
+  {
+    id: 'job-1',
+    title: 'Senior Frontend Developer',
+    company: 'Tech Innovations Inc.',
+    location: 'San Francisco, CA',
+    type: 'full-time',
+    status: 'active',
+    posted_date: '2023-05-15',
+    applicants: 24
+  },
+  {
+    id: 'job-2',
+    title: 'UX Designer',
+    company: 'Design Studio',
+    location: 'Remote',
+    type: 'full-time',
+    status: 'active',
+    posted_date: '2023-05-12',
+    applicants: 18
+  },
+  {
+    id: 'job-3',
+    title: 'Backend Engineer',
+    company: 'Data Systems',
+    location: 'New York, NY',
+    type: 'full-time',
+    status: 'paused',
+    posted_date: '2023-05-10',
+    applicants: 15
+  },
+  {
+    id: 'job-4',
+    title: 'Marketing Specialist',
+    company: 'Growth Marketing',
+    location: 'Chicago, IL',
+    type: 'part-time',
+    status: 'closed',
+    posted_date: '2023-05-01',
+    applicants: 30
+  },
+  {
+    id: 'job-5',
+    title: 'DevOps Engineer',
+    company: 'Cloud Solutions',
+    location: 'Remote',
+    type: 'contract',
+    status: 'active',
+    posted_date: '2023-05-08',
+    applicants: 12
+  }
+];

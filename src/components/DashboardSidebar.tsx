@@ -121,11 +121,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               </Link>
             </Button>
             <Button 
-              variant={isActive("/companies/profile") ? "secondary" : "ghost"} 
+              variant={isActive("/company-profile") ? "secondary" : "ghost"} 
               className="w-full justify-start" 
               asChild
             >
-              <Link to="/companies/profile">
+              <Link to="/company-profile">
                 <Building className="mr-2 h-4 w-4" />
                 Company Profile
               </Link>

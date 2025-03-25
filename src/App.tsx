@@ -60,7 +60,7 @@ const App = () => {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/post-job" element={<PostJob />} />
                 <Route path="/apply/:id" element={<ApplyJob />} />
-                <Route path="/companies/profile" element={<CompanyProfile />} />
+                <Route path="/company-profile" element={<CompanyProfile />} /> {/* Add a new route for company profile without params */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AnimatePresence>

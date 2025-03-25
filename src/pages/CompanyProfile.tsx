@@ -8,18 +8,51 @@ import CompanyInfo from '@/components/company/CompanyInfo';
 import CompanyDescription from '@/components/company/CompanyDescription';
 import CompanyJobs from '@/components/company/CompanyJobs';
 import CompanySidebar from '@/components/company/CompanySidebar';
+import { supabase } from '@/integrations/supabase/client';
 
 const CompanyProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [company, setCompany] = useState(companies.find(c => c.id === id));
-  const [companyJobs, setCompanyJobs] = useState(jobs.filter(job => job.companyId === id));
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // If there's no ID in the URL, we'll try to get the company for the logged-in user
+  const [company, setCompany] = useState(id ? companies.find(c => c.id === id) : null);
+  const [companyJobs, setCompanyJobs] = useState(id ? jobs.filter(job => job.companyId === id) : []);
   
   useEffect(() => {
-    if (!company) {
+    // Check if user is logged in and get user data
+    const fetchUserData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserId(session.user.id);
+        
+        // If no ID was provided and we have a user, try to get their company
+        // In a real app, you would fetch the company data from your database
+        if (!id) {
+          // For demo purposes, we'll just use the first company
+          // In a real app, this would be based on the user's company association
+          const userCompany = companies[0]; // This is just a placeholder
+          setCompany(userCompany);
+          
+          if (userCompany) {
+            setCompanyJobs(jobs.filter(job => job.companyId === userCompany.id));
+          }
+        }
+      } else if (!id) {
+        // If no ID was provided and user is not logged in, redirect to companies
+        navigate('/companies', { replace: true });
+      }
+    };
+    
+    fetchUserData();
+  }, [id, navigate]);
+  
+  useEffect(() => {
+    // If ID was provided but company not found, redirect to companies
+    if (id && !company) {
       navigate('/companies', { replace: true });
     }
-  }, [company, navigate]);
+  }, [company, id, navigate]);
   
   if (!company) {
     return null;

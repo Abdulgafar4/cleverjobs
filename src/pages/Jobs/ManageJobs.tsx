@@ -13,7 +13,6 @@ import {
   Filter, 
   ArrowUpDown 
 } from 'lucide-react';
-import DashboardSidebar from '@/components/DashboardSidebar';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -182,14 +181,7 @@ const ManageJobs = () => {
   }
 
   return (
-    <div className="sidebar-layout">
-      <DashboardSidebar 
-        userType={userType} 
-        userName={user?.user_metadata?.first_name || 'User'} 
-        companyName={user?.user_metadata?.company_name || 'Company'}
-      />
-      
-      <main className="dashboard-content">
+    <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Manage Jobs</h1>
@@ -355,8 +347,7 @@ const ManageJobs = () => {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </main>
   );
 };
 

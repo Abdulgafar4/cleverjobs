@@ -59,6 +59,32 @@ This project is built with .
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (backend/database)
+- OpenAI (AI-powered resume parsing - optional)
+
+## Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```env
+# Supabase Configuration (Required)
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# OpenAI Configuration (Optional - for AI-powered resume parsing)
+# Get your API key from https://platform.openai.com/api-keys
+VITE_OPENAI_API_KEY=your_openai_api_key
+```
+
+### Setting up OpenAI API Key (Optional)
+
+For the best resume parsing experience, you can optionally configure an OpenAI API key:
+
+1. Go to https://platform.openai.com/api-keys
+2. Create a new API key
+3. Add it to your `.env.local` file as `VITE_OPENAI_API_KEY`
+
+**Note:** Without an OpenAI API key, the app will use a rule-based parser (less accurate). With an API key, the app will use AI-powered parsing for much better accuracy.
 
 ## How can I deploy this project?
 

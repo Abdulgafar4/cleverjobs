@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { updateJobSeekerProfile, updateEmployerProfile } from '@/lib/utils';
 import { Briefcase, User, Building, ArrowRight } from 'lucide-react';
 
 const Onboarding = () => {
@@ -35,7 +36,7 @@ const Onboarding = () => {
 
   useEffect(() => {
     // Check if user is logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         navigate('/auth');
         return;
@@ -48,15 +49,30 @@ const Onboarding = () => {
       if (userMetadata && userMetadata.user_type) {
         setUserType(userMetadata.user_type);
       } else {
-        // If metadata doesn't contain user type, redirect to auth
-        toast({
-          title: "Error",
-          description: "User type not found. Please sign up again.",
-          variant: "destructive"
-        });
-        supabase.auth.signOut().then(() => {
-          navigate('/auth');
-        });
+        // If metadata doesn't contain user type, set a default or prompt
+        // For now, default to jobseeker and update metadata
+        const defaultUserType = 'jobseeker';
+        setUserType(defaultUserType);
+        
+        // Update user metadata with default user_type
+        try {
+          await supabase.auth.updateUser({
+            data: {
+              user_type: defaultUserType,
+            }
+          });
+          toast({
+            title: "Profile setup",
+            description: "Please complete your profile information below",
+          });
+        } catch (error: any) {
+          console.error('Error setting user type:', error);
+          toast({
+            title: "Error",
+            description: "Please try refreshing the page",
+            variant: "destructive"
+          });
+        }
       }
     });
   }, [navigate, toast]);
@@ -76,21 +92,18 @@ const Onboarding = () => {
     try {
       setLoading(true);
       
-      // Here you would typically save this data to a profiles table in your database
-      // For now, we'll just update user metadata
-      
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          title,
-          bio,
-          skills: skills.split(',').map(skill => skill.trim()),
-          onboarding_completed: true
-        },
+      // Update user metadata with profile information
+      await updateJobSeekerProfile({
+        first_name: firstName,
+        last_name: lastName,
+        title,
+        bio,
+        skills: skills.split(',').map(skill => skill.trim()).filter(Boolean),
+        onboarding_completed: true
       });
       
-      if (error) throw error;
+      // Refresh the session to get updated metadata
+      await supabase.auth.refreshSession();
       
       toast({
         title: "Profile created",
@@ -124,19 +137,18 @@ const Onboarding = () => {
     try {
       setLoading(true);
       
-      // Save employer profile data
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          company_name: companyName,
-          industry,
-          company_size: companySize,
-          company_website: companyWebsite,
-          company_description: companyDescription,
-          onboarding_completed: true
-        },
+      // Update user metadata with company profile information
+      await updateEmployerProfile({
+        company_name: companyName,
+        industry,
+        company_size: companySize,
+        company_website: companyWebsite,
+        company_description: companyDescription,
+        onboarding_completed: true
       });
       
-      if (error) throw error;
+      // Refresh the session to get updated metadata
+      await supabase.auth.refreshSession();
       
       toast({
         title: "Company profile created",

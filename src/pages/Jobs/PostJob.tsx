@@ -15,8 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Building, MapPin, DollarSign, Clock } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import DashboardSidebar from '@/components/DashboardSidebar';
-
 // Form schema for job posting
 const jobFormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters"),
@@ -43,7 +41,7 @@ const PostJob = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        navigate('/auth');
+        navigate('/auth/employer');
         return;
       }
       
@@ -94,7 +92,7 @@ const PostJob = () => {
           description: "Please sign in to post a job",
           variant: "destructive"
         });
-        navigate('/auth');
+        navigate('/auth/employer');
         return;
       }
       
@@ -121,15 +119,8 @@ const PostJob = () => {
   }
 
   return (
-    <div className="sidebar-layout">
-      <DashboardSidebar 
-        userType={userType} 
-        userName={user?.user_metadata?.first_name || 'User'} 
-        companyName={user?.user_metadata?.company_name || 'Company'}
-      />
-      
-      <main className="dashboard-content">
-        <div className="container px-4 sm:px-6 max-w-3xl mx-auto py-8">
+    <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">Post a New Job</h1>
           <p className="text-muted-foreground mb-8">
             Fill out the form below to create a new job listing
@@ -298,9 +289,8 @@ const PostJob = () => {
               </div>
             </CardFooter>
           </Card>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 };
 

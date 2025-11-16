@@ -14,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Building, MapPin, DollarSign, ArrowLeft } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import DashboardSidebar from '@/components/DashboardSidebar';
 import { employerJobListings } from '@/lib/data';
 
 // Form schema for job posting
@@ -143,29 +142,15 @@ const EditJob = () => {
 
   if (loading) {
     return (
-      <div className="sidebar-layout">
-        <DashboardSidebar 
-          userType={userType} 
-          userName={user?.user_metadata?.first_name || 'User'} 
-          companyName={user?.user_metadata?.company_name || 'Company'}
-        />
-        <main className="dashboard-content">
-          <div className="flex items-center justify-center min-h-screen">Loading...</div>
-        </main>
-      </div>
+      <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center min-h-[60vh]">Loading...</div>
+      </main>
     );
   }
 
   return (
-    <div className="sidebar-layout">
-      <DashboardSidebar 
-        userType={userType} 
-        userName={user?.user_metadata?.first_name || 'User'} 
-        companyName={user?.user_metadata?.company_name || 'Company'}
-      />
-      
-      <main className="dashboard-content">
-        <div className="container px-4 sm:px-6 max-w-3xl mx-auto py-8">
+    <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="max-w-3xl mx-auto">
           <div className="mb-6">
             <Button variant="ghost" onClick={() => navigate('/jobs/manage')} className="mb-4">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -364,9 +349,8 @@ const EditJob = () => {
               </div>
             </CardFooter>
           </Card>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 };
 

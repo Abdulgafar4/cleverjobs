@@ -29,24 +29,24 @@
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 47% 13%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 47% 13%;
     --popover-foreground: 210 40% 98%;
     --primary: 262 66% 75%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217.2 25% 25%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 217.2 25% 22%;
+    --muted-foreground: 215 20.2% 70%;
+    --accent: 217.2 25% 25%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 25% 25%;
+    --input: 217.2 25% 25%;
     --ring: 262 66% 75%;
   }
   
@@ -117,7 +117,7 @@
 }
 
 .glass-morphism {
-  @apply backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-gray-800/30 shadow-md;
+  @apply backdrop-blur-xl bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-gray-800/30 shadow-md;
 }
 
 .animated-gradient {
@@ -138,15 +138,71 @@
   }
 }
 
-/* Dashboard layout styles */
-.dashboard-content {
-  @apply pt-20; /* Top margin to prevent overlap with navbar */
+/* Dashboard layout styles - sidebar removed */
+
+/* Print styles for resume/profile */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+  }
+  
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+  
+  .rounded-2xl,
+  .rounded-lg {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .bg-gradient-to-r,
+  .bg-gradient-to-b,
+  .bg-muted {
+    background: white !important;
+  }
+  
+  .shadow-lg,
+  .shadow-md {
+    box-shadow: none !important;
+  }
+  
+  .border {
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  .text-primary {
+    color: #1f2937 !important;
+  }
+  
+  .bg-primary\/10,
+  .bg-primary\/5 {
+    background: white !important;
+  }
 }
 
-.sidebar-layout {
-  @apply flex min-h-screen bg-background;
+.logo-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 24s linear infinite;
 }
 
-.sidebar-layout main {
-  @apply flex-1 px-4 md:px-6 pt-16 pb-6 overflow-y-auto;
+.logo-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }

@@ -2,8 +2,11 @@
 import { Link } from 'react-router-dom';
 import { Job } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, MapPin, Briefcase, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { trackJobShare } from '@/lib/analytics';
 
 interface JobCardProps {
   job: Job;
@@ -13,18 +16,75 @@ interface JobCardProps {
 
 const JobCard = ({ job, variant = 'default', className = '' }: JobCardProps) => {
   const isFeatured = variant === 'featured' || job.featured;
+  const { toast } = useToast();
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const jobUrl = `${window.location.origin}/jobs/${job.id}`;
+    const shareData = {
+      title: `${job.title} at ${job.company}`,
+      text: `Check out this job: ${job.title} at ${job.company} - ${job.location}`,
+      url: jobUrl,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        trackJobShare(job.id, job.title);
+        toast({
+          title: "Shared!",
+          description: "Job link shared successfully",
+        });
+      } else {
+        // Fallback: Copy to clipboard with job details
+        const shareMessage = `${job.title} at ${job.company}\n${job.location}\n\n${jobUrl}`;
+        await navigator.clipboard.writeText(shareMessage);
+        trackJobShare(job.id, job.title);
+        toast({
+          title: "Link copied!",
+          description: "Job details copied to clipboard",
+        });
+      }
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error.name !== 'AbortError') {
+        // Fallback: Copy to clipboard with job details
+        try {
+          const shareMessage = `${job.title} at ${job.company}\n${job.location}\n\n${jobUrl}`;
+          await navigator.clipboard.writeText(shareMessage);
+          toast({
+            title: "Link copied!",
+            description: "Job details copied to clipboard",
+          });
+        } catch (clipboardError) {
+          toast({
+            title: "Error",
+            description: "Failed to share job",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+  };
 
   return (
-    <Link 
-      to={`/jobs/${job.id}`}
+    <div
       className={cn(
-        'block group',
+        'group relative',
         className
       )}
     >
+      <Link 
+        to={`/jobs/${job.id}`}
+        className="block"
+      >
       <div className={cn(
         'relative h-full rounded-xl p-5 border transition-all duration-300 overflow-hidden',
-        isFeatured ? 'shadow-md border-primary/20 bg-white' : 'border-border bg-card/50 hover:border-primary/20 hover:shadow-sm',
+        isFeatured
+          ? 'border-primary/50 bg-white/90 shadow-lg shadow-primary/15'
+          : 'border-primary/30 bg-card/60 hover:border-primary/60 hover:shadow-lg/20',
       )}>
         {isFeatured && (
           <div className="absolute top-0 right-0">
@@ -85,7 +145,19 @@ const JobCard = ({ job, variant = 'default', className = '' }: JobCardProps) => 
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+      
+      {/* Share button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleShare}
+        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md hover:bg-white dark:hover:bg-slate-900 z-10"
+        aria-label="Share job"
+      >
+        <Share2 className="w-4 h-4" />
+      </Button>
+    </div>
   );
 };
 

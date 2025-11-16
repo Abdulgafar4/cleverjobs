@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { jobs } from '@/lib/data';
 import SearchBar from '@/components/SearchBar';
 import JobCard from '@/components/JobCard';
+import JobCardSkeleton from '@/components/JobCardSkeleton';
 import FilterPanel from '@/components/FilterPanel';
 import { Button } from '@/components/ui/button';
 import { Job } from '@/lib/data';
@@ -15,7 +16,8 @@ const Jobs = () => {
   const [searchParams, setSearchParams] = useState({
     query: '',
     location: '',
-    type: ''
+    type: '',
+    category: ''
   });
   
   const [filters, setFilters] = useState({
@@ -25,18 +27,34 @@ const Jobs = () => {
   
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
   const [showFilters, setShowFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Category to keyword mapping
+  const categoryKeywords: Record<string, string[]> = {
+    technology: ['developer', 'engineer', 'software', 'programming', 'tech', 'ios', 'android', 'full stack', 'backend', 'frontend', 'react', 'python', 'javascript', 'java', 'node'],
+    design: ['designer', 'design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'figma', 'sketch', 'photoshop'],
+    marketing: ['marketing', 'marketer', 'seo', 'social media', 'content', 'brand', 'advertising', 'campaign', 'growth'],
+    finance: ['finance', 'financial', 'accountant', 'accounting', 'analyst', 'banking', 'investment', 'trading'],
+    education: ['teacher', 'educator', 'education', 'teaching', 'professor', 'instructor', 'curriculum'],
+    healthcare: ['healthcare', 'health', 'medical', 'nurse', 'doctor', 'physician', 'therapist', 'clinical'],
+    business: ['business', 'manager', 'management', 'consultant', 'strategy', 'operations', 'executive'],
+    engineering: ['engineer', 'engineering', 'mechanical', 'electrical', 'civil', 'structural', 'systems']
+  };
   
   // Parse query parameters when component mounts or location changes
   useEffect(() => {
+    setIsLoading(true);
     const params = new URLSearchParams(location.search);
     const query = params.get('q') || '';
     const locParam = params.get('location') || '';
     const typeParam = params.get('type') || '';
+    const categoryParam = params.get('category') || '';
     
     setSearchParams({
       query,
       location: locParam,
-      type: typeParam
+      type: typeParam,
+      category: categoryParam
     });
     
     // Set initial filters based on URL params
@@ -53,11 +71,29 @@ const Jobs = () => {
         type: [typeParam]
       }));
     }
+    
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
   }, [location]);
   
   // Apply search and filters
   useEffect(() => {
     let results = [...jobs];
+    
+    // Apply category filter first (if present)
+    if (searchParams.category) {
+      const category = searchParams.category.toLowerCase();
+      const keywords = categoryKeywords[category] || [];
+      
+      if (keywords.length > 0) {
+        results = results.filter(job => {
+          const jobText = `${job.title} ${job.description} ${job.company}`.toLowerCase();
+          return keywords.some(keyword => jobText.includes(keyword));
+        });
+      }
+    }
     
     // Apply text search
     if (searchParams.query) {
@@ -153,7 +189,13 @@ const Jobs = () => {
                 </p>
               </div>
               
-              {filteredJobs.length > 0 ? (
+              {isLoading ? (
+                <div className="grid gap-4">
+                  {[...Array(6)].map((_, index) => (
+                    <JobCardSkeleton key={index} />
+                  ))}
+                </div>
+              ) : filteredJobs.length > 0 ? (
                 <div className="grid gap-4">
                   {filteredJobs.map((job) => (
                     <JobCard key={job.id} job={job} />
@@ -168,7 +210,7 @@ const Jobs = () => {
                   <Button 
                     variant="outline"
                     onClick={() => {
-                      setSearchParams({ query: '', location: '', type: '' });
+                      setSearchParams({ query: '', location: '', type: '', category: '' });
                       setFilters({ location: [], type: [] });
                     }}
                   >

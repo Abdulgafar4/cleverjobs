@@ -4,6 +4,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobs, companies } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   MapPin, Briefcase, Clock, DollarSign, 
   Building, ArrowLeft, Share2, Globe,
@@ -14,15 +16,117 @@ import AnimatedTransition from '@/components/AnimatedTransition';
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [job, setJob] = useState(jobs.find(j => j.id === id));
   const [company, setCompany] = useState(companies.find(c => c.id === job?.companyId));
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    if (!job) {
-      navigate('/jobs', { replace: true });
-    }
+    // Simulate loading for better UX
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      if (!job) {
+        navigate('/jobs', { replace: true });
+      }
+    }, 200);
+    
+    return () => clearTimeout(timer);
   }, [job, navigate]);
+
+  const handleApply = async () => {
+    try {
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.session) {
+        // User is not logged in, redirect to login page
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to apply for this job",
+        });
+        navigate('/auth', { 
+          state: { returnTo: `/apply/${id}` } 
+        });
+        return;
+      }
+      
+      // User is logged in, navigate to apply page
+      navigate(`/apply/${id}`);
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!job) return;
+    
+    const jobUrl = `${window.location.origin}/jobs/${job.id}`;
+    const shareData = {
+      title: `${job.title} at ${job.company}`,
+      text: `Check out this job: ${job.title} at ${job.company} - ${job.location}. ${job.salary}`,
+      url: jobUrl,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared!",
+          description: "Job link shared successfully",
+        });
+      } else {
+        // Fallback: Copy to clipboard with job details
+        const shareMessage = `${job.title} at ${job.company}\n${job.location} • ${job.type}\n${job.salary}\n\n${jobUrl}`;
+        await navigator.clipboard.writeText(shareMessage);
+        toast({
+          title: "Link copied!",
+          description: "Job details copied to clipboard",
+        });
+      }
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error.name !== 'AbortError') {
+        // Fallback: Copy to clipboard with job details
+        try {
+          const shareMessage = `${job.title} at ${job.company}\n${job.location} • ${job.type}\n${job.salary}\n\n${jobUrl}`;
+          await navigator.clipboard.writeText(shareMessage);
+          toast({
+            title: "Link copied!",
+            description: "Job details copied to clipboard",
+          });
+        } catch (clipboardError) {
+          toast({
+            title: "Error",
+            description: "Failed to share job",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+  };
   
+  if (isLoading) {
+    return (
+      <AnimatedTransition>
+        <main className="min-h-screen pt-24 pb-16">
+          <div className="container px-4 sm:px-6 lg:px-8 mx-auto">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading job details...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </AnimatedTransition>
+    );
+  }
+
   if (!job || !company) {
     return null;
   }
@@ -78,7 +182,13 @@ const JobDetail = () => {
                   </div>
                   
                   <div className="flex gap-2 sm:self-start">
-                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="rounded-full h-10 w-10"
+                      onClick={handleShare}
+                      aria-label="Share job"
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
@@ -130,7 +240,7 @@ const JobDetail = () => {
                 </div>
                 
                 <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
-                  <Button size="lg" className="px-8">
+                  <Button size="lg" className="px-8" onClick={handleApply}>
                     Apply Now
                   </Button>
                   <Button variant="outline" size="lg">

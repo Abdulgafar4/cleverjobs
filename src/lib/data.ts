@@ -96,7 +96,7 @@ export const companies: Company[] = [
     industry: 'Technology',
     founded: '1976',
     size: '10,000+',
-    logo: 'https://logo.clearbit.com/apple.com',
+    logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=256',
     coverImage: 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
     jobs: ['apple-1', 'apple-2']
   },
@@ -109,7 +109,7 @@ export const companies: Company[] = [
     industry: 'Technology',
     founded: '1998',
     size: '10,000+',
-    logo: 'https://logo.clearbit.com/google.com',
+    logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=256',
     coverImage: 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
     jobs: ['google-1', 'google-2']
   },
@@ -122,7 +122,7 @@ export const companies: Company[] = [
     industry: 'Technology',
     founded: '1975',
     size: '10,000+',
-    logo: 'https://logo.clearbit.com/microsoft.com',
+    logo: 'https://www.google.com/s2/favicons?domain=microsoft.com&sz=256',
     coverImage: 'https://images.unsplash.com/photo-1623479322729-28b25c16b011?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
     jobs: ['microsoft-1']
   },
@@ -135,7 +135,7 @@ export const companies: Company[] = [
     industry: 'Technology, Retail',
     founded: '1994',
     size: '10,000+',
-    logo: 'https://logo.clearbit.com/amazon.com',
+    logo: 'https://www.google.com/s2/favicons?domain=amazon.com&sz=256',
     coverImage: 'https://images.unsplash.com/photo-1565439312768-4a6a10a2e59c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
     jobs: ['amazon-1', 'amazon-2']
   },
@@ -148,7 +148,7 @@ export const companies: Company[] = [
     industry: 'Entertainment, Technology',
     founded: '1997',
     size: '10,000+',
-    logo: 'https://logo.clearbit.com/netflix.com',
+    logo: 'https://www.google.com/s2/favicons?domain=netflix.com&sz=256',
     coverImage: 'https://images.unsplash.com/photo-1522869635100-187f6605241d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
     jobs: ['netflix-1']
   },
@@ -161,7 +161,7 @@ export const companies: Company[] = [
     industry: 'Technology',
     founded: '2004',
     size: '10,000+',
-    logo: 'https://logo.clearbit.com/meta.com',
+    logo: 'https://www.google.com/s2/favicons?domain=meta.com&sz=256',
     coverImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
     jobs: ['meta-1']
   },
@@ -187,7 +187,7 @@ export const jobs: Job[] = [
       'Knowledge of other web technologies and UI/UX standards',
       "Understanding of Apple's design principles and interface guidelines"
     ],
-    logo: 'https://logo.clearbit.com/apple.com'
+    logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=256'
   },
   {
     id: 'apple-2',
@@ -207,7 +207,7 @@ export const jobs: Job[] = [
       'Strong understanding of UX principles',
       'Collaborative mindset and ability to work with cross-functional teams'
     ],
-    logo: 'https://logo.clearbit.com/apple.com'
+    logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=256'
   },
   {
     id: 'google-1',
@@ -227,7 +227,7 @@ export const jobs: Job[] = [
       'Strong problem-solving and algorithmic skills',
       'Experience with large-scale data processing systems'
     ],
-    logo: 'https://logo.clearbit.com/google.com'
+    logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=256'
   },
   {
     id: 'google-2',
@@ -247,7 +247,7 @@ export const jobs: Job[] = [
       'Strong communication and presentation skills',
       'Ability to translate research findings into actionable product recommendations'
     ],
-    logo: 'https://logo.clearbit.com/google.com'
+    logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=256'
   },
   {
     id: 'microsoft-1',
@@ -267,7 +267,7 @@ export const jobs: Job[] = [
       'Understanding of RESTful APIs and database technologies',
       'Knowledge of cloud services, preferably Azure'
     ],
-    logo: 'https://logo.clearbit.com/microsoft.com'
+    logo: 'https://www.google.com/s2/favicons?domain=microsoft.com&sz=256'
   },
   {
     id: 'amazon-1',
@@ -287,7 +287,7 @@ export const jobs: Job[] = [
       'Strong written and verbal communication skills',
       'Ability to translate complex technical information to a variety of audiences'
     ],
-    logo: 'https://logo.clearbit.com/amazon.com'
+    logo: 'https://www.google.com/s2/favicons?domain=amazon.com&sz=256'
   },
   {
     id: 'amazon-2',
@@ -307,7 +307,7 @@ export const jobs: Job[] = [
       'Experience with SQL and data visualization tools',
       'Strong problem-solving and critical thinking skills'
     ],
-    logo: 'https://logo.clearbit.com/amazon.com'
+    logo: 'https://www.google.com/s2/favicons?domain=amazon.com&sz=256'
   },
   {
     id: 'netflix-1',
@@ -327,7 +327,7 @@ export const jobs: Job[] = [
       'Experience with digital marketing channels and analytics',
       'Strategic thinker with creative mindset'
     ],
-    logo: 'https://logo.clearbit.com/netflix.com'
+    logo: 'https://www.google.com/s2/favicons?domain=netflix.com&sz=256'
   },
   {
     id: 'meta-1',
@@ -347,7 +347,7 @@ export const jobs: Job[] = [
       'Experience with Unity or Unreal Engine',
       'Strong mathematical foundation in linear algebra and 3D geometry'
     ],
-    logo: 'https://logo.clearbit.com/meta.com'
+    logo: 'https://www.google.com/s2/favicons?domain=meta.com&sz=256'
   },
   {
     id: 'remote-1',
@@ -367,7 +367,7 @@ export const jobs: Job[] = [
       'Knowledge of frontend build tools and task runners',
       'Ability to work independently in a remote environment'
     ],
-    logo: 'https://logo.clearbit.com/stripe.com'
+    logo: 'https://www.google.com/s2/favicons?domain=stripe.com&sz=256'
   },
   {
     id: 'internship-1',
@@ -387,7 +387,7 @@ export const jobs: Job[] = [
       'Eager to learn and work in a collaborative environment',
       'Available for at least 12 weeks during summer'
     ],
-    logo: 'https://logo.clearbit.com/figma.com'
+    logo: 'https://www.google.com/s2/favicons?domain=figma.com&sz=256'
   },
   {
     id: 'contract-1',
@@ -407,7 +407,7 @@ export const jobs: Job[] = [
       'Knowledge of Infrastructure as Code tools like Terraform',
       'Strong scripting skills (Python, Bash)'
     ],
-    logo: 'https://logo.clearbit.com/slack.com'
+    logo: 'https://www.google.com/s2/favicons?domain=slack.com&sz=256'
   }
 ];
 

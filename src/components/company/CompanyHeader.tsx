@@ -28,7 +28,7 @@ const CompanyHeader = ({
           backgroundPosition: 'center'
         }}
       >
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+        <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
         
         <div className="container px-4 sm:px-6 lg:px-8 mx-auto h-full relative">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-white rounded-xl border shadow-md p-3 w-[90px] h-[90px] flex items-center justify-center">

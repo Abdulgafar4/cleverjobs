@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { updateUserMetadata, updateJobSeekerProfile, updateEmployerProfile } from '@/lib/utils';
+import { useUser } from '@/hooks/use-user';
 import { useTheme } from '@/components/ThemeProvider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import ResumeUpload from '@/components/ResumeUpload';
 import {
   CheckCircle2,
   Moon,
@@ -18,38 +21,86 @@ import {
   ShieldAlert,
   Sun,
   User,
+  FileText,
 } from 'lucide-react';
-import DashboardSidebar from '@/components/DashboardSidebar';
-
 const Settings = () => {
   const { theme, setTheme, accent, setAccent } = useTheme();
-  const [user, setUser] = useState<any>(null);
-  const [userType, setUserType] = useState<'jobseeker' | 'employer' | null>(null);
+  const { user, userType, userMetadata, refresh } = useUser();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Profile update states
+  const [updating, setUpdating] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: userMetadata?.first_name || '',
+    lastName: userMetadata?.last_name || '',
+    title: userMetadata?.title || '',
+    phone: userMetadata?.phone || '',
+    location: userMetadata?.location || '',
+    // Employer fields
+    companyName: userMetadata?.company_name || '',
+    industry: userMetadata?.industry || '',
+  });
+
   useEffect(() => {
-    async function getUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/auth');
-        return;
-      }
-      
-      setUser(session.user);
-      
-      // Get user type from metadata
-      const userMetadata = session.user.user_metadata;
-      if (userMetadata && userMetadata.user_type) {
-        setUserType(userMetadata.user_type);
-      }
+    if (!user) {
+      navigate('/auth');
+      return;
     }
-    
-    getUser();
-  }, [navigate]);
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (userMetadata) {
+      setProfileData({
+        firstName: userMetadata?.first_name || '',
+        lastName: userMetadata?.last_name || '',
+        title: userMetadata?.title || '',
+        phone: userMetadata?.phone || '',
+        location: userMetadata?.location || '',
+        companyName: userMetadata?.company_name || '',
+        industry: userMetadata?.industry || '',
+      });
+    }
+  }, [userMetadata]);
+
+  const handleUpdateProfile = async () => {
+    try {
+      setUpdating(true);
+      
+      if (userType === 'jobseeker') {
+        await updateJobSeekerProfile({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          title: profileData.title,
+          phone: profileData.phone,
+          location: profileData.location,
+        });
+      } else if (userType === 'employer') {
+        await updateEmployerProfile({
+          company_name: profileData.companyName,
+          industry: profileData.industry,
+        });
+      }
+      
+      // Refresh user data to get updated metadata
+      await refresh();
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating profile",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const handleSaveAppearance = () => {
     toast({
@@ -70,14 +121,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="sidebar-layout">
-      <DashboardSidebar 
-        userType={userType} 
-        userName={user?.user_metadata?.first_name || 'User'} 
-        companyName={user?.user_metadata?.company_name || 'Company'}
-      />
-      
-      <main className="dashboard-content">
+    <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Settings</h1>
           <p className="text-muted-foreground">
@@ -85,15 +129,21 @@ const Settings = () => {
           </p>
         </div>
         
-        <Tabs defaultValue="appearance" className="w-full">
+        <Tabs defaultValue="account" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="appearance" className="flex items-center gap-2">
-              <PaletteIcon className="h-4 w-4" />
-              <span>Appearance</span>
-            </TabsTrigger>
             <TabsTrigger value="account" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span>Account</span>
+            </TabsTrigger>
+            {userType === 'jobseeker' && (
+              <TabsTrigger value="resume" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span>Resume</span>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
+              <PaletteIcon className="h-4 w-4" />
+              <span>Appearance</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <ShieldAlert className="h-4 w-4" />
@@ -324,39 +374,153 @@ const Settings = () => {
           </TabsContent>
           
           <TabsContent value="account">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-                <CardDescription>
-                  View and update your account details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <div className="rounded-md border px-4 py-3 font-mono text-sm bg-muted/50">
-                    {user.email}
+            <div className="grid gap-6">
+              {userType === 'jobseeker' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>
+                      Update your personal information and profile details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="firstName">First Name</Label>
+                        <input
+                          id="firstName"
+                          type="text"
+                          value={profileData.firstName}
+                          onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                          className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <input
+                          id="lastName"
+                          type="text"
+                          value={profileData.lastName}
+                          onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                          className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="title">Job Title</Label>
+                      <input
+                        id="title"
+                        type="text"
+                        value={profileData.title}
+                        onChange={(e) => setProfileData({ ...profileData, title: e.target.value })}
+                        placeholder="e.g., Software Engineer"
+                        className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="phone">Phone</Label>
+                        <input
+                          id="phone"
+                          type="tel"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                          placeholder="+1 (555) 123-4567"
+                          className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="location">Location</Label>
+                        <input
+                          id="location"
+                          type="text"
+                          value={profileData.location}
+                          onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                          placeholder="City, State"
+                          className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button onClick={handleUpdateProfile} disabled={updating}>
+                      {updating ? 'Updating...' : 'Update Profile'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Company Information</CardTitle>
+                    <CardDescription>
+                      Update your company information and profile details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="companyName">Company Name</Label>
+                      <input
+                        id="companyName"
+                        type="text"
+                        value={profileData.companyName}
+                        onChange={(e) => setProfileData({ ...profileData, companyName: e.target.value })}
+                        className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="industry">Industry</Label>
+                      <input
+                        id="industry"
+                        type="text"
+                        value={profileData.industry}
+                        onChange={(e) => setProfileData({ ...profileData, industry: e.target.value })}
+                        placeholder="e.g., Technology, Healthcare"
+                        className="w-full mt-1.5 px-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button onClick={handleUpdateProfile} disabled={updating}>
+                      {updating ? 'Updating...' : 'Update Profile'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              )}
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Information</CardTitle>
+                  <CardDescription>
+                    View your account details
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <div className="rounded-md border px-4 py-3 font-mono text-sm bg-muted/50">
+                      {user.email}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Account Type</Label>
-                  <div className="rounded-md border px-4 py-3 font-mono text-sm bg-muted/50 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    {userType === 'jobseeker' ? 'Job Seeker' : 'Employer'}
+                  
+                  <div className="space-y-2">
+                    <Label>Account Type</Label>
+                    <div className="rounded-md border px-4 py-3 font-mono text-sm bg-muted/50 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      {userType === 'jobseeker' ? 'Job Seeker' : 'Employer'}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium">Account Security</Label>
-                  <Separator className="my-2" />
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Change Password
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
+
+          {userType === 'jobseeker' && (
+            <TabsContent value="resume">
+              <div className="grid gap-6">
+                <ResumeUpload onUpdateComplete={refresh} />
+              </div>
+            </TabsContent>
+          )}
           
           <TabsContent value="notifications">
             <Card>
@@ -403,10 +567,9 @@ const Settings = () => {
                 </Button>
               </CardFooter>
             </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+        </TabsContent>
+      </Tabs>
+    </main>
   );
 };
 

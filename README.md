@@ -1,95 +1,109 @@
-# Welcome to your Lovable project
+# CleverJobs
 
-## Project info
+A modern job marketplace built with React, Vite, Supabase, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/18b957a7-6058-46c7-9eb6-dd9493acbcc7
+CleverJobs supports job seekers and employers with a full workflow:
+- Discover and search jobs
+- View job and company profiles
+- Sign in with Supabase authentication
+- Job seeker onboarding and profile management
+- Employer dashboard for posting, editing, and managing jobs
+- Resume upload and parsing with optional AI enhancement
+- FAQ and settings pages
 
-## How can I edit this code?
+## What this app does
 
-There are several ways of editing your application.
+The app provides a complete hiring experience:
 
-**Use Lovable**
+- Landing page with featured jobs and employer spotlight
+- Job search and filters across roles, locations, and tags
+- Job detail pages with apply flow
+- Company directory and company profile pages
+- Employer job management, including post/edit/delete flows
+- Candidate dashboard, profile management, and onboarding
+- Resume parsing via local rule-based parser, with optional OpenAI AI parsing when `VITE_OPENAI_API_KEY` is configured
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/18b957a7-6058-46c7-9eb6-dd9493acbcc7) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
+## Tech stack
 
 - Vite
+- React 18
 - TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
-- Supabase (backend/database)
-- OpenAI (AI-powered resume parsing - optional)
+- shadcn/ui components
+- React Router Dom
+- TanStack React Query
+- Supabase for auth and database
+- OpenAI SDK (optional resume parsing)
 
-## Environment Variables
+## Local setup
 
-Create a `.env.local` file in the root directory with the following variables:
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create a `.env.local` file at the project root with your Supabase values:
 
 ```env
-# Supabase Configuration (Required)
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-# OpenAI Configuration (Optional - for AI-powered resume parsing)
-# Get your API key from https://platform.openai.com/api-keys
+3. (Optional) Add OpenAI if you want AI-powered resume parsing:
+
+```env
 VITE_OPENAI_API_KEY=your_openai_api_key
 ```
 
-### Setting up OpenAI API Key (Optional)
+4. Start the development server:
 
-For the best resume parsing experience, you can optionally configure an OpenAI API key:
+```bash
+npm run dev
+```
 
-1. Go to https://platform.openai.com/api-keys
-2. Create a new API key
-3. Add it to your `.env.local` file as `VITE_OPENAI_API_KEY`
+5. Open the local preview URL shown by Vite.
 
-**Note:** Without an OpenAI API key, the app will use a rule-based parser (less accurate). With an API key, the app will use AI-powered parsing for much better accuracy.
+## Available scripts
 
-## How can I deploy this project?
+- `npm run dev` — start Vite dev server
+- `npm run build` — produce production build
+- `npm run preview` — preview the production build locally
+- `npm run lint` — run ESLint
 
-Simply open [Lovable](https://lovable.dev/projects/18b957a7-6058-46c7-9eb6-dd9493acbcc7) and click on Share -> Publish.
+## Supabase setup
 
-## I want to use a custom domain - is that possible?
+This application expects a Supabase project with a `jobs` table and user authentication enabled. The repository includes Supabase configuration and migration files under `supabase/`.
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+If you use Supabase locally or in your own project, make sure the following environment values are correct:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+## Key app routes
+
+- `/` — landing page
+- `/jobs` — job search
+- `/jobs/:id` — job details
+- `/apply/:id` — apply to a job
+- `/post-job` — employer job posting
+- `/jobs/manage` — employer job manager
+- `/edit-job/:id` — edit job listing
+- `/companies` — companies directory
+- `/companies/:id` — company profile
+- `/auth` — authentication
+- `/onboarding` — user onboarding
+- `/dashboard` — user dashboard
+- `/profile` — user profile
+- `/settings` — app settings
+- `/faq` — frequently asked questions
+
+## Notes
+
+- Resume parsing supports PDF/DOCX uploads and falls back to a local parser if no OpenAI key is provided.
+- The app is designed for both job seekers and employers.
+- The codebase includes reusable UI primitives in `src/components/ui` and Supabase integration in `src/integrations/supabase/client.ts`.
+
+## License
+
+This project does not include a license file. Add one if you want to publish or share it publicly.

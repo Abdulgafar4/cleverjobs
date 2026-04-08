@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import FeaturedJobs from '@/components/FeaturedJobs';
-import { jobs, companies } from '@/lib/data';
+import { companies, Job } from '@/lib/data';
+import { jobService } from '@/services/jobService';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import HeroSection from './components/HeroSection';
 import LogoMarqueeSection from './components/LogoMarqueeSection';
@@ -11,11 +13,21 @@ import FeaturesSection from './components/FeaturesSection';
 import FeaturedCompaniesSection from './components/FeaturedCompaniesSection';
 import NewsletterSection from './components/NewsletterSection';
 import EmployerCTASection from './components/EmployerCTASection';
+import ResumeUploadSection from './components/ResumeUploadSection';
 import ScrollToTop from '@/components/ScrollToTop';
 import AnalyticsDebugPanel from '@/components/AnalyticsDebugPanel';
 
 const Index = () => {
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
   const featuredCompanies = companies.slice(0, 4);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const jobs = await jobService.getFeaturedJobs();
+      setFeaturedJobs(jobs);
+    };
+    fetchJobs();
+  }, []);
 
   return (
     <AnimatedTransition>
@@ -37,10 +49,11 @@ const Index = () => {
           <HeroSection />
           <LogoMarqueeSection companies={companies} />
           <StatsSection />
-          <FeaturedJobs jobs={jobs} />
+          <FeaturedJobs jobs={featuredJobs} />
           <JobCategoriesSection />
           <TestimonialsSection />
           <HowItWorksSection />
+          <ResumeUploadSection />
           <FeaturesSection />
           <FeaturedCompaniesSection companies={featuredCompanies} />
           <NewsletterSection />

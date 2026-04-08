@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { jobs } from '@/lib/data';
+import { jobService } from '@/services/jobService';
 import SearchBar from '@/components/SearchBar';
 import JobCard from '@/components/JobCard';
 import JobCardSkeleton from '@/components/JobCardSkeleton';
@@ -19,16 +19,16 @@ const Jobs = () => {
     type: '',
     category: ''
   });
-  
+
   const [filters, setFilters] = useState({
     location: [] as string[],
     type: [] as string[]
   });
-  
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
+
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Category to keyword mapping
   const categoryKeywords: Record<string, string[]> = {
     technology: ['developer', 'engineer', 'software', 'programming', 'tech', 'ios', 'android', 'full stack', 'backend', 'frontend', 'react', 'python', 'javascript', 'java', 'node'],
@@ -40,7 +40,7 @@ const Jobs = () => {
     business: ['business', 'manager', 'management', 'consultant', 'strategy', 'operations', 'executive'],
     engineering: ['engineer', 'engineering', 'mechanical', 'electrical', 'civil', 'structural', 'systems']
   };
-  
+
   // Parse query parameters when component mounts or location changes
   useEffect(() => {
     setIsLoading(true);
@@ -49,14 +49,14 @@ const Jobs = () => {
     const locParam = params.get('location') || '';
     const typeParam = params.get('type') || '';
     const categoryParam = params.get('category') || '';
-    
+
     setSearchParams({
       query,
       location: locParam,
       type: typeParam,
       category: categoryParam
     });
-    
+
     // Set initial filters based on URL params
     if (locParam && locParam !== 'any') {
       setFilters(prev => ({
@@ -64,63 +64,56 @@ const Jobs = () => {
         location: [locParam]
       }));
     }
-    
+
     if (typeParam && typeParam !== 'any') {
       setFilters(prev => ({
         ...prev,
         type: [typeParam]
       }));
     }
-    
+
     // Simulate loading delay for better UX
     setTimeout(() => {
       setIsLoading(false);
     }, 300);
   }, [location]);
-  
+
   // Apply search and filters
   useEffect(() => {
-    let results = [...jobs];
-    
-    // Apply category filter first (if present)
-    if (searchParams.category) {
-      const category = searchParams.category.toLowerCase();
-      const keywords = categoryKeywords[category] || [];
-      
-      if (keywords.length > 0) {
-        results = results.filter(job => {
-          const jobText = `${job.title} ${job.description} ${job.company}`.toLowerCase();
-          return keywords.some(keyword => jobText.includes(keyword));
-        });
+    const fetchJobs = async () => {
+      setIsLoading(true);
+      try {
+        // Construct filters object
+        const activeFilters: any = {
+          query: searchParams.query,
+          location: filters.location.length > 0 ? filters.location[0] : undefined, // Assuming single location for now based on service
+          type: filters.type
+        };
+
+        // If 'any' is passed, remove it
+        if (activeFilters.location === 'any') delete activeFilters.location;
+        if (activeFilters.type === 'any') delete activeFilters.type;
+
+        const results = await jobService.getJobs(activeFilters);
+        setFilteredJobs(results);
+      } catch (error) {
+        console.error("Failed to fetch jobs:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    
-    // Apply text search
-    if (searchParams.query) {
-      const searchTerms = searchParams.query.toLowerCase();
-      results = results.filter(job => 
-        job.title.toLowerCase().includes(searchTerms) ||
-        job.company.toLowerCase().includes(searchTerms) ||
-        job.description.toLowerCase().includes(searchTerms)
-      );
-    }
-    
-    // Apply location filters
-    if (filters.location.length > 0) {
-      results = results.filter(job => filters.location.includes(job.location));
-    }
-    
-    // Apply job type filters
-    if (filters.type.length > 0) {
-      results = results.filter(job => filters.type.includes(job.type));
-    }
-    
-    setFilteredJobs(results);
+    };
+
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchJobs();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   }, [searchParams, filters]);
-  
+
   const handleSearch = (values: { query: string; location: string; type: string }) => {
-    setSearchParams(values);
-    
+    setSearchParams(prev => ({ ...prev, ...values }));
+
     // Update filters based on search form
     if (values.location && values.location !== 'any') {
       setFilters(prev => ({
@@ -134,7 +127,7 @@ const Jobs = () => {
         location: []
       }));
     }
-    
+
     if (values.type && values.type !== 'any') {
       setFilters(prev => ({
         ...prev,
@@ -148,7 +141,7 @@ const Jobs = () => {
       }));
     }
   };
-  
+
   return (
     <AnimatedTransition>
       <main className="min-h-screen">
@@ -159,7 +152,7 @@ const Jobs = () => {
                 <Briefcase className="w-7 h-7" />
                 Browse Jobs
               </h1>
-              <Button 
+              <Button
                 variant="outline"
                 className="md:hidden flex items-center gap-2"
                 onClick={() => setShowFilters(!showFilters)}
@@ -168,27 +161,27 @@ const Jobs = () => {
                 Filters
               </Button>
             </div>
-            <SearchBar 
-              variant="inline" 
+            <SearchBar
+              variant="inline"
               initialValues={searchParams}
               onSearch={handleSearch}
             />
           </div>
         </div>
-        
+
         <div className="container px-4 sm:px-6 lg:px-8 mx-auto py-8">
           <div className="flex flex-col md:flex-row gap-8">
             <div className={`${showFilters ? 'block' : 'hidden'} md:block md:w-1/4 lg:w-1/5`}>
               <FilterPanel filters={filters} setFilters={setFilters} />
             </div>
-            
+
             <div className="md:w-3/4 lg:w-4/5">
               <div className="mb-4 flex justify-between items-center">
                 <p className="text-muted-foreground">
                   {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
                 </p>
               </div>
-              
+
               {isLoading ? (
                 <div className="grid gap-4">
                   {[...Array(6)].map((_, index) => (
@@ -207,7 +200,7 @@ const Jobs = () => {
                   <p className="text-muted-foreground mb-6">
                     Try adjusting your search or filter criteria
                   </p>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => {
                       setSearchParams({ query: '', location: '', type: '', category: '' });

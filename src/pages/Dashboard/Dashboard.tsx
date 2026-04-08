@@ -1,223 +1,60 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/hooks/use-user';
 import { jobs, employerJobListings } from '@/lib/data';
 import { 
   Briefcase, 
-  Plus, 
   ChevronRight, 
   PlusCircle, 
-  ListFilter,
   Bookmark,
   FileText,
   TrendingUp,
   Clock,
-  CheckCircle2,
   Eye,
   Users,
   Activity,
-  Calendar,
   Target,
   Award,
   MessageSquare,
-  ArrowUpRight,
-  ArrowDownRight,
   Sparkles,
   Zap,
-  Star,
   MapPin,
   Building2,
-  DollarSign
+  HelpCircle,
+  Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-/**
- * Calculate profile completion percentage based on filled fields
- * Returns a value between 0 and 100
- */
-const calculateProfileCompletion = (userType: 'jobseeker' | 'employer' | null, userMetadata: any): number => {
-  if (!userType || !userMetadata) return 0;
-
-  let completedFields = 0;
-  let totalFields = 0;
-
-  const isFieldFilled = (value: any, isArray: boolean = false, isBoolean: boolean = false, isObjectArray: boolean = false): boolean => {
-    // Handle undefined or null
-    if (value === undefined || value === null) {
-      return false;
-    }
-    
-    if (isBoolean) {
-      return value === true;
-    }
-    
-    // For arrays of objects (like experience, education)
-    if (isObjectArray) {
-      return Array.isArray(value) && value.length > 0 && value.some((item: any) => {
-        // Check if at least one item has meaningful data
-        if (typeof item === 'object' && item !== null) {
-          // For experience: check if it has title or company
-          if (item.title || item.company) return true;
-          // For education: check if it has degree or school
-          if (item.degree || item.school) return true;
-        }
-        return false;
-      });
-    }
-    
-    if (isArray) {
-      return Array.isArray(value) && value.length > 0;
-    }
-    
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      // Check if it's a valid URL format
-      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-        return trimmed.length > 10; // Minimum valid URL length
-      }
-      return trimmed.length > 0;
-    }
-    
-    // For other types, check if truthy
-    return !!value;
-  };
-
-  type FieldDefinition = {
-    key: string;
-    weight: number;
-    isArray?: boolean;
-    isBoolean?: boolean;
-    isObjectArray?: boolean;
-  };
-
-  if (userType === 'jobseeker') {
-    // Required fields - Basic info (25 points total)
-    const requiredFields: FieldDefinition[] = [
-      { key: 'first_name', weight: 8 },
-      { key: 'last_name', weight: 8 },
-      { key: 'title', weight: 9 },
-    ];
-
-    // Essential resume fields - Professional Summary, Skills, Experience, Education (50 points total)
-    const essentialFields: FieldDefinition[] = [
-      { key: 'bio', weight: 15 }, // Professional Summary
-      { key: 'skills', weight: 15, isArray: true }, // Skills
-      { key: 'experience', weight: 10, isObjectArray: true }, // Work Experience
-      { key: 'education', weight: 10, isObjectArray: true }, // Education
-    ];
-
-    // Additional fields - Contact and location (15 points total)
-    const additionalFields: FieldDefinition[] = [
-      { key: 'location', weight: 8 },
-      { key: 'phone', weight: 7 },
-    ];
-
-    // Optional fields - Social links (10 points total)
-    // NOTE: onboarding_completed should NOT count toward completion percentage
-    const optionalFields: FieldDefinition[] = [
-      { key: 'linkedin_url', weight: 5 },
-      { key: 'portfolio_url', weight: 5 },
-    ];
-
-    // Check required fields
-    requiredFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, false, false, false)) {
-        completedFields += field.weight;
-      }
-    });
-
-    // Check essential fields (Professional Summary, Skills, Experience, Education)
-    essentialFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, field.isArray || false, field.isBoolean || false, field.isObjectArray || false)) {
-        completedFields += field.weight;
-      }
-    });
-
-    // Check additional fields
-    additionalFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, field.isArray || false, field.isBoolean || false, field.isObjectArray || false)) {
-        completedFields += field.weight;
-      }
-    });
-
-    // Check optional fields
-    optionalFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, field.isArray || false, field.isBoolean || false, field.isObjectArray || false)) {
-        completedFields += field.weight;
-      }
-    });
-  } else if (userType === 'employer') {
-    // Required fields - Basic company info (30 points total)
-    // NOTE: onboarding_completed should NOT count toward completion percentage
-    const requiredFields: FieldDefinition[] = [
-      { key: 'company_name', weight: 30 },
-    ];
-
-    // Important fields - Company details (50 points total)
-    const importantFields: FieldDefinition[] = [
-      { key: 'industry', weight: 20 },
-      { key: 'company_description', weight: 20 },
-      { key: 'location', weight: 10 },
-    ];
-
-    // Optional fields - Additional info (20 points total)
-    const optionalFields: FieldDefinition[] = [
-      { key: 'company_website', weight: 10 },
-      { key: 'company_size', weight: 5 },
-      { key: 'phone', weight: 5 },
-    ];
-
-    // Check required fields
-    requiredFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, false, false)) {
-        completedFields += field.weight;
-      }
-    });
-
-    // Check important fields
-    importantFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, false, false)) {
-        completedFields += field.weight;
-      }
-    });
-
-    // Check optional fields
-    optionalFields.forEach(field => {
-      totalFields += field.weight;
-      const value = userMetadata[field.key];
-      if (isFieldFilled(value, false, false)) {
-        completedFields += field.weight;
-      }
-    });
-  }
-
-  // Calculate percentage, ensuring it's between 0 and 100
-  if (totalFields === 0) return 0;
-  const percentage = Math.round((completedFields / totalFields) * 100);
-  return Math.min(100, Math.max(0, percentage));
-};
+import { calculateProfileCompletion } from './utils';
+import { StatCard } from './components/StatCard';
+import { JobItem } from './components/JobItem';
+import { ApplicationItem } from './components/ApplicationItem';
+import { ApplicantItem } from './components/ApplicantItem';
+import { StatRow } from './components/StatRow';
+import SearchBar from '@/components/SearchBar';
+import JobCard from '@/components/JobCard';
+import JobCardSkeleton from '@/components/JobCardSkeleton';
+import { rankJobsForUser, generateSuggestedSearches } from '@/lib/jobRanking';
+import { SuggestedChips } from './components/SuggestedChips';
+import { QuickActions } from './components/QuickActions';
+import { SuggestedSearches } from './components/SuggestedSearches';
+import { RecentActivity } from './components/RecentActivity';
 
 const Dashboard = () => {
   const { user, userType, userMetadata, loading: userLoading } = useUser();
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [personalized, setPersonalized] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchType, setSearchType] = useState('');
+  const [displayedJobs, setDisplayedJobs] = useState<any[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -240,6 +77,10 @@ const Dashboard = () => {
 
     // Load dashboard data based on user type
     if (userType === 'jobseeker') {
+      // Set default personalization based on profile completeness
+      const hasProfileData = !!(userMetadata?.skills?.length || userMetadata?.title);
+      setPersonalized(hasProfileData);
+      
       setDashboardData({
         totalApplications: 12,
         savedJobs: 8,
@@ -247,11 +88,10 @@ const Dashboard = () => {
         responseRate: 42,
         interviews: 3,
         recentApplications: [
-          { id: '1', title: 'Senior Frontend Developer', company: 'TechCorp', status: 'under-review', date: '2 days ago' },
-          { id: '2', title: 'UI/UX Designer', company: 'DesignHub', status: 'interview', date: '5 days ago' },
-          { id: '3', title: 'Product Manager', company: 'GrowthCo', status: 'applied', date: '1 week ago' },
+          { id: '1', title: 'Senior Frontend Developer', company: 'TechCorp', status: 'under-review', date: '2 days ago', time: '2 days ago' },
+          { id: '2', title: 'UI/UX Designer', company: 'DesignHub', status: 'interview', date: '5 days ago', time: '5 days ago' },
+          { id: '3', title: 'Product Manager', company: 'GrowthCo', status: 'applied', date: '1 week ago', time: '1 week ago' },
         ],
-        recommendedJobs: jobs.slice(0, 3),
         activity: [
           { type: 'application', message: 'Applied to Senior Frontend Developer at TechCorp', time: '2 days ago' },
           { type: 'saved', message: 'Saved UI/UX Designer at DesignHub', time: '3 days ago' },
@@ -296,6 +136,52 @@ const Dashboard = () => {
     }
   }, [user, userType, userMetadata, userLoading, navigate]);
 
+  // Load and rank jobs for jobseekers
+  useEffect(() => {
+    if (userType !== 'jobseeker' || !dashboardData) return;
+
+    setIsLoadingJobs(true);
+    
+    // Simulate async operation
+    setTimeout(() => {
+      let filteredJobs = [...jobs];
+      
+      // Apply search filters
+      if (searchQuery) {
+        const queryLower = searchQuery.toLowerCase();
+        filteredJobs = filteredJobs.filter(job =>
+          job.title.toLowerCase().includes(queryLower) ||
+          job.company.toLowerCase().includes(queryLower) ||
+          job.description.toLowerCase().includes(queryLower)
+        );
+      }
+      
+      if (searchLocation && searchLocation !== 'any') {
+        filteredJobs = filteredJobs.filter(job =>
+          job.location.toLowerCase().includes(searchLocation.toLowerCase())
+        );
+      }
+      
+      if (searchType && searchType !== 'any') {
+        filteredJobs = filteredJobs.filter(job => job.type === searchType);
+      }
+      
+      // Apply personalization if enabled and user has profile data
+      if (personalized && (userMetadata?.skills?.length || userMetadata?.title)) {
+        const ranked = rankJobsForUser(filteredJobs, userMetadata || {}, {
+          minScore: 20,
+          limit: 15
+        });
+        setDisplayedJobs(ranked.length > 0 ? ranked : filteredJobs.slice(0, 15));
+      } else {
+        // Show recent jobs if not personalized
+        setDisplayedJobs(filteredJobs.slice(0, 15));
+      }
+      
+      setIsLoadingJobs(false);
+    }, 300);
+  }, [userType, dashboardData, personalized, userMetadata, searchQuery, searchLocation, searchType]);
+
   if (userLoading || !dashboardData) {
     return (
       <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -322,6 +208,210 @@ const Dashboard = () => {
     return user?.email?.split('@')[0] || 'User';
   };
 
+  const handleSearch = (values: { query: string; location: string; type: string }) => {
+    setSearchQuery(values.query);
+    setSearchLocation(values.location);
+    setSearchType(values.type);
+  };
+
+  const handleChipClick = (term: string) => {
+    setSearchQuery(term);
+    // Trigger search
+    handleSearch({ query: term, location: searchLocation, type: searchType });
+  };
+
+  const handleSuggestedSearchClick = (query: string) => {
+    setSearchQuery(query);
+    handleSearch({ query, location: searchLocation, type: searchType });
+  };
+
+  // Generate suggested chips and searches
+  const suggestedChips = userMetadata ? generateSuggestedSearches(userMetadata).slice(0, 5) : [];
+  const suggestedSearches = userMetadata ? generateSuggestedSearches(userMetadata) : [];
+
+  // Render jobseeker dashboard
+  if (userType === 'jobseeker') {
+    const hasProfileData = !!(userMetadata?.skills?.length || userMetadata?.title);
+    
+    return (
+      <main className="min-h-screen">
+        {/* Top Section with Search */}
+        <div className="pt-28 pb-8 bg-secondary/30">
+          <div className="container px-4 sm:px-6 lg:px-8 mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold mb-1">
+                  Welcome back, {getUserDisplayName()}
+                </h1>
+                <p className="text-muted-foreground">
+                  {displayedJobs.length > 0 
+                    ? `${displayedJobs.length} job${displayedJobs.length !== 1 ? 's' : ''} matched your profile`
+                    : 'Discover your next opportunity'}
+                </p>
+              </div>
+              {/* Quick Stats Links */}
+              <div className="hidden md:flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild className="text-sm">
+                  <Link to="/applications" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span>{dashboardData?.totalApplications || 0} Applications</span>
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild className="text-sm">
+                  <Link to="/saved" className="flex items-center gap-2">
+                    <Bookmark className="h-4 w-4" />
+                    <span>{dashboardData?.savedJobs || 0} Saved</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            
+            {/* Search Bar */}
+            <div className="mb-4">
+              <SearchBar
+                variant="inline"
+                initialValues={{
+                  query: searchQuery,
+                  location: searchLocation,
+                  type: searchType
+                }}
+                onSearch={handleSearch}
+              />
+            </div>
+
+            {/* Controls Row */}
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="personalize"
+                    checked={personalized}
+                    onCheckedChange={setPersonalized}
+                    disabled={!hasProfileData}
+                  />
+                  <Label htmlFor="personalize" className="text-sm cursor-pointer">
+                    Personalized matches
+                  </Label>
+                </div>
+                {!hasProfileData && (
+                  <Badge variant="outline" className="text-xs">
+                    <Upload className="h-3 w-3 mr-1" />
+                    Upload resume to enable
+                  </Badge>
+                )}
+              </div>
+              
+              {/* Suggested Chips */}
+              {hasProfileData && suggestedChips.length > 0 && (
+                <SuggestedChips
+                  suggestions={suggestedChips}
+                  onChipClick={handleChipClick}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="container px-4 sm:px-6 lg:px-8 mx-auto py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Job Feed - Main Focus */}
+            <div className="lg:col-span-3">
+              {/* Empty State - No Profile */}
+              {!hasProfileData && (
+                <Card className="mb-6 border-primary/20 bg-primary/5">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <Upload className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">Get personalized job matches</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Upload your resume and we'll show you jobs that match your skills and experience.
+                        </p>
+                        <Button size="sm" asChild>
+                          <Link to="/profile">Upload Resume</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Job Feed */}
+              {isLoadingJobs ? (
+                <div className="space-y-4">
+                  {[...Array(8)].map((_, i) => (
+                    <JobCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : displayedJobs.length > 0 ? (
+                <div className="space-y-4">
+                  {displayedJobs.map((job) => (
+                    <JobCard key={job.id} job={job} />
+                  ))}
+                  <div className="pt-4 text-center">
+                    <Button variant="outline" asChild>
+                      <Link to="/jobs">
+                        Browse All Jobs
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <Briefcase className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                      <h3 className="text-lg font-semibold mb-2">No jobs found</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Try adjusting your search or filters
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setSearchQuery('');
+                          setSearchLocation('');
+                          setSearchType('');
+                        }}>
+                          Clear Search
+                        </Button>
+                        {personalized && (
+                          <Button variant="outline" size="sm" onClick={() => setPersonalized(false)}>
+                            Show All Jobs
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
+              <QuickActions />
+              
+              {/* Suggested Searches */}
+              {suggestedSearches.length > 0 && (
+                <SuggestedSearches
+                  searches={suggestedSearches}
+                  onSearchClick={handleSuggestedSearchClick}
+                />
+              )}
+              
+              {/* Recent Activity */}
+              {dashboardData?.activity && (
+                <RecentActivity activities={dashboardData.activity} />
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Employer dashboard (existing)
   return (
     <main className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       {/* Welcome Header */}
@@ -666,230 +756,6 @@ const Dashboard = () => {
   );
 };
 
-// Stat Card Component
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  change?: number;
-  icon: React.ReactNode;
-  description: string;
-  color: 'blue' | 'purple' | 'green' | 'orange';
-  onClick?: () => void;
-}
-
-const StatCard = ({ title, value, change, icon, description, color, onClick }: StatCardProps) => {
-  const colorClasses = {
-    blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20 text-blue-600 dark:text-blue-400',
-    purple: 'from-purple-500/10 to-purple-500/5 border-purple-500/20 text-purple-600 dark:text-purple-400',
-    green: 'from-green-500/10 to-green-500/5 border-green-500/20 text-green-600 dark:text-green-400',
-    orange: 'from-orange-500/10 to-orange-500/5 border-orange-500/20 text-orange-600 dark:text-orange-400',
-  };
-
-  return (
-    <Card 
-      className={cn(
-        "border bg-gradient-to-br cursor-pointer hover:shadow-lg transition-all duration-300",
-        colorClasses[color],
-        onClick && "hover:scale-105"
-      )}
-      onClick={onClick}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className={cn("p-2 rounded-lg bg-current/10", colorClasses[color])}>
-            {icon}
-          </div>
-          {change !== undefined && (
-            <div className={cn(
-              "flex items-center gap-1 text-xs font-medium",
-              change > 0 ? "text-green-600" : "text-red-600"
-            )}>
-              {change > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-              {Math.abs(change)}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold mb-1">{value}</div>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Job Item Component
-interface JobItemProps {
-  job: any;
-  userType: 'jobseeker' | 'employer' | null;
-}
-
-const JobItem = ({ job, userType }: JobItemProps) => {
-  const jobUrl = userType === 'jobseeker' ? `/jobs/${job.id}` : `/jobs/${job.id}`;
-  
-  return (
-    <Link to={jobUrl}>
-      <div className="flex items-center gap-4 p-4 rounded-lg border hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group">
-        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Briefcase className="h-6 w-6 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold group-hover:text-primary transition-colors">
-            {job.title || job.name}
-          </h4>
-          <p className="text-sm text-muted-foreground">{job.company}</p>
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
-            {job.location && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {job.location}
-              </span>
-            )}
-            {job.salary && (
-              <span className="flex items-center gap-1">
-                <DollarSign className="h-3 w-3" />
-                {job.salary}
-              </span>
-            )}
-            {job.type && (
-              <span className="flex items-center gap-1">
-                <Briefcase className="h-3 w-3" />
-                {job.type}
-              </span>
-            )}
-            {userType === 'employer' && job.applicants !== undefined && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {job.applicants} applicants
-              </span>
-            )}
-            {userType === 'employer' && job.status && (
-              <Badge variant="outline" className="text-xs">
-                {job.status}
-              </Badge>
-            )}
-          </div>
-        </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-      </div>
-    </Link>
-  );
-};
-
-// Application Item Component
-interface ApplicationItemProps {
-  application: any;
-}
-
-const ApplicationItem = ({ application }: ApplicationItemProps) => {
-  const statusColors = {
-    'applied': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'under-review': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    'interview': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    'accepted': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    'rejected': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  };
-
-  return (
-    <div className="flex items-center justify-between p-4 rounded-lg border">
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <h4 className="font-semibold">{application.title}</h4>
-          <Badge className={cn("text-xs", statusColors[application.status as keyof typeof statusColors] || statusColors.applied)}>
-            {application.status.replace('-', ' ')}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground">{application.company}</p>
-        <p className="text-xs text-muted-foreground mt-1">{application.date}</p>
-      </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-    </div>
-  );
-};
-
-// Applicant Item Component
-interface ApplicantItemProps {
-  applicant: any;
-}
-
-const ApplicantItem = ({ applicant }: ApplicantItemProps) => {
-  const statusColors = {
-    'new': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'reviewed': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    'interview': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    'hired': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    'rejected': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  };
-
-  return (
-    <div className="flex items-center justify-between p-4 rounded-lg border">
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <h4 className="font-semibold">{applicant.name}</h4>
-          <Badge className={cn("text-xs", statusColors[applicant.status as keyof typeof statusColors] || statusColors.new)}>
-            {applicant.status}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground">{applicant.job}</p>
-        <p className="text-xs text-muted-foreground mt-1">{applicant.date}</p>
-      </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-    </div>
-  );
-};
-
-// Activity Item Component
-interface ActivityItemProps {
-  activity: any;
-}
-
-const ActivityItem = ({ activity }: ActivityItemProps) => {
-  const icons = {
-    application: <FileText className="h-4 w-4" />,
-    saved: <Bookmark className="h-4 w-4" />,
-    interview: <MessageSquare className="h-4 w-4" />,
-    applicant: <Users className="h-4 w-4" />,
-    job: <Briefcase className="h-4 w-4" />,
-    view: <Eye className="h-4 w-4" />,
-  };
-
-  return (
-    <div className="flex items-start gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-        {icons[activity.type as keyof typeof icons] || <Activity className="h-4 w-4" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm">{activity.message}</p>
-        <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-      </div>
-    </div>
-  );
-};
-
-// Stat Row Component
-interface StatRowProps {
-  label: string;
-  value: string | number;
-  change?: number;
-}
-
-const StatRow = ({ label, value, change }: StatRowProps) => {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2">
-        <span className="font-semibold">{value}</span>
-        {change !== undefined && (
-          <span className={cn(
-            "text-xs",
-            change > 0 ? "text-green-600" : change < 0 ? "text-red-600" : "text-muted-foreground"
-          )}>
-            {change > 0 ? '+' : ''}{change}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
+// component implementations moved to ./components/*
 
 export default Dashboard;
